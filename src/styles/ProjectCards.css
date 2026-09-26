@@ -19,6 +19,11 @@
   pointer-events: auto;
 }
 
+.project-card__pop {
+  width: 100%;
+  height: 100%;
+}
+
 .project-card__page {
   position: relative;
   width: 100%;

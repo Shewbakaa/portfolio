@@ -254,59 +254,62 @@ const ProjectCard = memo(function ProjectCard({ p, i, flipped, onToggleFlip }) {
       onPointerDown={(e) => e.stopPropagation()}
       onTouchStart={(e) => e.stopPropagation()}
     >
-      <div className="project-card__page">
-        <div className="project-card__leaf">
-          <span className="project-card__tape" aria-hidden="true" />
+      {/* Intro pop target: no CSS transform here, so GSAP's leftover inline transform is harmless */}
+      <div className="project-card__pop">
+        <div className="project-card__page">
+          <div className="project-card__leaf">
+            <span className="project-card__tape" aria-hidden="true" />
 
-          {/* Front: the sketch */}
-          <div className="project-card__face project-card__face--front" aria-hidden={flipped}>
-            <span className="project-card__shadow" aria-hidden="true" />
-            <div className="project-card__sheet">
-              <h3 className={`project-card__title${p.title.length > 14 ? ' is-long' : ''}`}>{p.title}</h3>
-              <svg className="project-card__underline" viewBox="0 0 160 10" aria-hidden="true">
-                <path d={sketch.underline} />
-              </svg>
-
-              <div className="project-card__frame">
-                <svg className="project-card__frameLines" viewBox="0 0 244 190" preserveAspectRatio="none" aria-hidden="true">
-                  <path d={sketch.frame} />
-                  <path d={sketch.frameInner} className="is-inner" />
+            {/* Front: the sketch */}
+            <div className="project-card__face project-card__face--front" aria-hidden={flipped}>
+              <span className="project-card__shadow" aria-hidden="true" />
+              <div className="project-card__sheet">
+                <h3 className={`project-card__title${p.title.length > 14 ? ' is-long' : ''}`}>{p.title}</h3>
+                <svg className="project-card__underline" viewBox="0 0 160 10" aria-hidden="true">
+                  <path d={sketch.underline} />
                 </svg>
-                <div className="project-card__hero">{hero}</div>
+
+                <div className="project-card__frame">
+                  <svg className="project-card__frameLines" viewBox="0 0 244 190" preserveAspectRatio="none" aria-hidden="true">
+                    <path d={sketch.frame} />
+                    <path d={sketch.frameInner} className="is-inner" />
+                  </svg>
+                  <div className="project-card__hero">{hero}</div>
+                </div>
+
+                {p.note ? <p className="project-card__note">{p.note}</p> : null}
+                <span className="project-card__hint" aria-hidden="true">flip ↻</span>
+                <span className="project-card__date">{formatCardDate(p.createdDate)}</span>
               </div>
-
-              {p.note ? <p className="project-card__note">{p.note}</p> : null}
-              <span className="project-card__hint" aria-hidden="true">flip ↻</span>
-              <span className="project-card__date">{formatCardDate(p.createdDate)}</span>
             </div>
-          </div>
 
-          {/* Back: the notes */}
-          <div className="project-card__face project-card__face--back" aria-hidden={!flipped}>
-            <span className="project-card__shadow" aria-hidden="true" />
-            <div className="project-card__sheet">
-              <h3 className="project-card__backTitle">{p.title}</h3>
-              <p className="project-card__desc">{p.Desc}</p>
-              <div className="project-card__links">
-                <SketchButton
-                  className="project-card__link"
-                  label="GitHub"
-                  href={p.link}
-                  seed={p.id * 31 + 1}
-                  ariaLabel={`${p.title} on GitHub`}
-                />
-                {p.demo ? (
+            {/* Back: the notes */}
+            <div className="project-card__face project-card__face--back" aria-hidden={!flipped}>
+              <span className="project-card__shadow" aria-hidden="true" />
+              <div className="project-card__sheet">
+                <h3 className="project-card__backTitle">{p.title}</h3>
+                <p className="project-card__desc">{p.Desc}</p>
+                <div className="project-card__links">
                   <SketchButton
                     className="project-card__link"
-                    label="Live ↗"
-                    href={p.demo}
-                    seed={p.id * 31 + 2}
-                    hatchColor="var(--teal)"
-                    ariaLabel={`${p.title} live demo`}
+                    label="GitHub"
+                    href={p.link}
+                    seed={p.id * 31 + 1}
+                    ariaLabel={`${p.title} on GitHub`}
                   />
-                ) : null}
+                  {p.demo ? (
+                    <SketchButton
+                      className="project-card__link"
+                      label="Live ↗"
+                      href={p.demo}
+                      seed={p.id * 31 + 2}
+                      hatchColor="var(--teal)"
+                      ariaLabel={`${p.title} live demo`}
+                    />
+                  ) : null}
+                </div>
+                <span className="project-card__hint project-card__hint--back" aria-hidden="true">flip back ↺</span>
               </div>
-              <span className="project-card__hint project-card__hint--back" aria-hidden="true">flip back ↺</span>
             </div>
           </div>
         </div>

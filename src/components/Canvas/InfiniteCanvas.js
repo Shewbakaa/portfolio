@@ -293,7 +293,7 @@ export const InfiniteCanvas = ({ children }) => {
     gsap.set(['.about-card', '.float-badges-root', '.float-badge'], { opacity: 0 });
     gsap.set('.float-badge-inner', { scale: 0.86 });
     gsap.set(['.project-card'], { opacity: 0 });
-    gsap.set('.project-card__inner', { scale: 0.86 });
+    gsap.set('.project-card__pop', { scale: 0.86 });
     gsap.set(['.skill-cards-cluster', '.timeline-strip', '.contact-cluster'], { opacity: 0 });
     gsap.set(['.sticky-note'], { opacity: 0 });
     gsap.set(
@@ -301,7 +301,7 @@ export const InfiniteCanvas = ({ children }) => {
       { opacity: 0 }
     );
 
-    gsap.set(['.about-card-pop', '.skill-card-title-badge'], { scale: 0.86 });
+    gsap.set('.about-card-pop', { scale: 0.86 });
     gsap.set(['.skill-cards-canvas-card'], { scale: 0.94 });
     gsap.set(['.timeline-note__pop', '.sticky-note__pop'], { scale: 0.86 });
     gsap.set(['.contact-cluster'], { scale: 0.94, transformOrigin: '50% 20%' });
@@ -362,7 +362,7 @@ export const InfiniteCanvas = ({ children }) => {
       );
 
       tl.to(
-        '.project-card__inner',
+        '.project-card__pop',
         {
           keyframes: [
             { scale: 1.06, duration: 0.22, ease: 'power3.out' },
