@@ -182,212 +182,85 @@ canvas {
       stroke-dashoffset: 0;
    }
  }
-  
 
-  /* CSS */
-  .button-82-pushable {
-  border: none;
-  background: transparent;
-  padding: 0;
-  cursor: pointer !important;
-  outline-offset: 4px;
-  transition: filter 250ms;
-  user-select: none;
-  -webkit-user-select: none;
-  touch-action: manipulation;
-}
-
-.button-82-shadow {
-  position: absolute;
-  cursor: pointer !important;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border-radius: 12px;
-  background: hsl(0deg 0% 0% / 0.25);
-  will-change: transform;
-  transform: translateY(2px);
-  transition:
-    transform
-    600ms
-    cubic-bezier(.3, .7, .4, 1);
-}
-
-.button-82-edge {
-  position: absolute;
-  cursor: pointer !important;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border-radius: 12px;
-  background: linear-gradient(
-    to left,
-    hsl(340deg 100% 16%) 0%,
-    hsl(340deg 100% 32%) 8%,
-    hsl(340deg 100% 32%) 92%,
-    hsl(340deg 100% 16%) 100%
-  );
-}
-
-.button-82-front {
+/* Hand-drawn enter button — paths are jittered in SketchEnterButton.js */
+.sketch-enter {
   display: block;
-  position: relative;
+  width: 280px;
+  padding: 0;
+  border: none;
+  background: none;
   cursor: pointer !important;
-  padding: 12px 27px;
-  border-radius: 12px;
-  font-size: 1.1rem;
-  color: white;
-  background: hsl(345deg 100% 47%);
-  will-change: transform;
-  transform: translateY(-4px);
-  transition:
-    transform
-    600ms
-    cubic-bezier(.3, .7, .4, 1);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: transform 0.12s;
 }
 
-@media (min-width: 768px) {
-  .button-82-front {
-    font-size: 1.25rem;
-    padding: 12px 42px;
-  }
+.sketch-enter:active {
+  transform: scale(0.95) rotate(1deg);
 }
 
-.button-82-pushable:hover {
-  filter: brightness(110%);
-  -webkit-filter: brightness(110%);
+.sketch-enter svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
 }
 
-.button-82-pushable:hover .button-82-front {
-  transform: translateY(-6px);
-  transition:
-    transform
-    250ms
-    cubic-bezier(.3, .7, .4, 1.5);
-}
-
-.button-82-pushable:active .button-82-front {
-  transform: translateY(-2px);
-  transition: transform 34ms;
-}
-
-.button-82-pushable:hover .button-82-shadow {
-  transform: translateY(4px);
-  transition:
-    transform
-    250ms
-    cubic-bezier(.3, .7, .4, 1.5);
-}
-
-.button-82-pushable:active .button-82-shadow {
-  transform: translateY(1px);
-  transition: transform 34ms;
-}
-
-.button-82-pushable:focus:not(:focus-visible) {
+.sketch-enter:focus {
   outline: none;
 }
 
-/* Button Glitch CSS */
-.button-49,
-.button-49:after {
-  width: 150px;
-  height: 76px;
-  line-height: 78px;
-  font-size: 20px;
-  font-family: 'Bebas Neue', sans-serif;
-  background: linear-gradient(45deg, transparent 5%, #FF013C 5%);
-  border: 0;
-  color: #fff;
-  letter-spacing: 3px;
-  box-shadow: 6px 0px 0px #00E6F6;
-  outline: transparent;
-  position: relative;
+.sketch-enter:focus-visible {
+  outline: 2px dashed var(--black);
+  outline-offset: 4px;
+}
+
+.sketch-enter__outline,
+.sketch-enter__shadow,
+.sketch-enter__arrow {
+  fill: none;
+  stroke: var(--black);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sketch-enter__outline {
+  stroke-width: 3;
+}
+
+.sketch-enter__outline--inner {
+  stroke-width: 1.6;
+  opacity: 0.7;
+}
+
+.sketch-enter__shadow {
+  stroke-width: 2.5;
+  opacity: 0.25;
+}
+
+.sketch-enter__arrow {
+  stroke-width: 2.5;
+}
+
+.sketch-enter__hatch {
+  fill: none;
+  stroke: var(--yellow);
+  stroke-width: 7;
+  stroke-linecap: round;
+}
+
+.sketch-enter__label {
+  font-family: 'Cabin Sketch', cursive;
+  font-weight: 700;
+  font-size: 40px;
+  fill: var(--black);
+  pointer-events: none;
   user-select: none;
-  -webkit-user-select: none;
-  touch-action: manipulation;
-  cursor: pointer !important;
 }
 
-.button-49:after {
-  --slice-0: inset(50% 50% 50% 50%);
-  --slice-1: inset(80% -6px 0 0);
-  --slice-2: inset(50% -6px 30% 0);
-  --slice-3: inset(10% -6px 85% 0);
-  --slice-4: inset(40% -6px 43% 0);
-  --slice-5: inset(80% -6px 5% 0);
-  
-  content: 'ALTERNATE TEXT';
-  display: block;
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(45deg, transparent 3%, #00E6F6 3%, #00E6F6 5%, #FF013C 5%);
-  text-shadow: -3px -3px 0px #F8F005, 3px 3px 0px #00E6F6;
-  clip-path: var(--slice-0);
-}
-
-.button-49:hover:after {
-  animation: 1s glitch;
-  animation-timing-function: steps(2, end);
-}
-
-@keyframes glitch {
-  0% {
-    clip-path: var(--slice-1);
-    transform: translate(-20px, -10px);
-  }
-  10% {
-    clip-path: var(--slice-3);
-    transform: translate(10px, 10px);
-  }
-  20% {
-    clip-path: var(--slice-1);
-    transform: translate(-10px, 10px);
-  }
-  30% {
-    clip-path: var(--slice-3);
-    transform: translate(0px, 5px);
-  }
-  40% {
-    clip-path: var(--slice-2);
-    transform: translate(-5px, 0px);
-  }
-  50% {
-    clip-path: var(--slice-3);
-    transform: translate(5px, 0px);
-  }
-  60% {
-    clip-path: var(--slice-4);
-    transform: translate(5px, 10px);
-  }
-  70% {
-    clip-path: var(--slice-2);
-    transform: translate(-10px, 10px);
-  }
-  80% {
-    clip-path: var(--slice-5);
-    transform: translate(20px, -10px);
-  }
-  90% {
-    clip-path: var(--slice-1);
-    transform: translate(-10px, 0px);
-  }
-  100% {
-    clip-path: var(--slice-1);
-    transform: translate(0);
-  }
-}
-
-@media (min-width: 768px) {
-  .button-49,
-  .button-49:after {
-    width: 200px;
-    height: 86px;
-    line-height: 88px;
+@media (max-width: 600px) {
+  .sketch-enter {
+    width: 210px;
   }
 }

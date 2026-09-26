@@ -11,6 +11,7 @@ import { CanvasChrome } from './CanvasChrome';
 import { FloatingSkillBadges } from './FloatingSkillBadges';
 import { AboutCard } from './About/AboutCard';
 import { BB8animation } from '../BB8animation';
+import { SketchEnterButton } from '../SketchEnterButton';
 import { ProjectCards } from '../ProjectCards';
 import { SkillCards } from '../SkillCards';
 import { TimelineStrip } from '../TimelineStrip';
@@ -751,14 +752,7 @@ export const InfiniteCanvas = ({ children }) => {
               pointerEvents: 'auto',
             }}
           >
-            <button
-              type="button"
-              onClick={exitIntro}
-              className="button-49"
-              role="button"
-            >
-              Enter
-            </button>
+            <SketchEnterButton onClick={exitIntro} />
           </div>
         </div>
       )}
