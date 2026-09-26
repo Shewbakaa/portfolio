@@ -43,6 +43,11 @@
     transform-style: preserve-3d;
 }
 
+#bb8-animate .bb8,
+#bb8-animate .ball {
+    will-change: transform;
+}
+
 #bb8-animate .antennas,
 .canvas-center .antennas {
     position: absolute;

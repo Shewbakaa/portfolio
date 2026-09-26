@@ -9,12 +9,21 @@ import bb8Exit from '../assets/Audios/bb8-exit.mp3';
 
 const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 
+// Fraction of the remaining gap closed per 10ms (speed 2 * accelMod 1 / 100),
+// converted to a per-second decay rate so motion is identical at 60Hz and 120Hz.
+const FOLLOW_PER_10MS = 0.02;
+const FOLLOW_RATE = -Math.log(1 - FOLLOW_PER_10MS) / 0.01;
+const MAX_DT = 0.05; // avoid a big jump after a tab switch / dropped frames
+const SETTLE_PX = 0.5;
+
 export const BB8animation = ({ audioEnabled, onExit, exitInProgress = false }) => {
     const bb8Ref = useRef(null);
+    const ballRef = useRef(null);
     const droidXRef = useRef(0);
     const mouseXRef = useRef(300);
-    const [droidX, setDroidX] = useState(0);
-    const [mouseX, setMouseX] = useState(300);
+    const rafRef = useRef(null);
+    const lastTimeRef = useRef(null);
+    const toTheRightRef = useRef(true);
     const [look, setLook] = useState({
         headTx: 0,
         headRz: 0,
@@ -23,17 +32,55 @@ export const BB8animation = ({ audioEnabled, onExit, exitInProgress = false }) =
         antRz: 0,
     });
     const [toTheRight, setToTheRight] = useState(true);
-    const [speed, setSpeed] = useState(2);
-    const [accelMod, setAccelMod] = useState(1);
     const [isExiting, setIsExiting] = useState(false); // Exit state
+    const stoppedRef = useRef(false);
+    stoppedRef.current = isExiting || exitInProgress;
 
     const sounds = [bb8Sound, bb8Sound2, bb8Sound3, bb8Sound4];
     const audioRef = useRef(new Audio());
     const bb8ExitRef = useRef(new Audio(bb8Exit));
 
-    useEffect(() => {
-        droidXRef.current = droidX;
-    }, [droidX]);
+    const setDirection = (right) => {
+        if (toTheRightRef.current !== right) {
+            toTheRightRef.current = right;
+            setToTheRight(right);
+        }
+    };
+
+    const applyDroidTransform = () => {
+        const x = droidXRef.current;
+        if (bb8Ref.current) bb8Ref.current.style.transform = `translateX(${x}px)`;
+        if (ballRef.current) ballRef.current.style.transform = `rotateZ(${x / 2}deg)`;
+    };
+
+    // Movement loop — one rAF per display frame, eased by elapsed time.
+    const tick = (now) => {
+        rafRef.current = null;
+        if (stoppedRef.current) return;
+
+        const last = lastTimeRef.current ?? now;
+        const dt = Math.min((now - last) / 1000, MAX_DT);
+        lastTimeRef.current = now;
+
+        const distance = mouseXRef.current - droidXRef.current;
+        if (Math.abs(distance) < SETTLE_PX) {
+            droidXRef.current = mouseXRef.current;
+            applyDroidTransform();
+            lastTimeRef.current = null;
+            return; // settled — loop restarts on next mousemove
+        }
+
+        droidXRef.current += distance * (1 - Math.exp(-FOLLOW_RATE * dt));
+        setDirection(distance > 0);
+        applyDroidTransform();
+        rafRef.current = requestAnimationFrame(tick);
+    };
+
+    const startLoop = () => {
+        if (rafRef.current == null && !stoppedRef.current) {
+            rafRef.current = requestAnimationFrame(tick);
+        }
+    };
 
     const playRandomSound = () => {
         if (audioRef.current.paused) {
@@ -46,9 +93,8 @@ export const BB8animation = ({ audioEnabled, onExit, exitInProgress = false }) =
     // Handle mouse movement — head/antennas aim toward cursor (screen-space)
     const handleMouseMove = (event) => {
         if (!isExiting && !exitInProgress) {
-            const mx = event.pageX;
-            setMouseX(mx);
-            mouseXRef.current = mx;
+            mouseXRef.current = event.pageX;
+            startLoop();
             const el = bb8Ref.current;
             if (el) {
                 const rect = el.getBoundingClientRect();
@@ -59,8 +105,8 @@ export const BB8animation = ({ audioEnabled, onExit, exitInProgress = false }) =
 
                 if (stationary) {
                     const margin = 14;
-                    if (event.clientX > cx + margin) setToTheRight(true);
-                    else if (event.clientX < cx - margin) setToTheRight(false);
+                    if (event.clientX > cx + margin) setDirection(true);
+                    else if (event.clientX < cx - margin) setDirection(false);
                 }
 
                 let headTx;
@@ -144,28 +190,17 @@ export const BB8animation = ({ audioEnabled, onExit, exitInProgress = false }) =
         return () => document.removeEventListener("keydown", handleKeyDown);
     }, [isExiting, onExit, audioEnabled]);
 
-    // Movement logic
+    // Run the movement loop; stop it (leaving transforms in place for GSAP) on exit
     useEffect(() => {
-        if (!isExiting && !exitInProgress) {
-            const moveDroid = () => {
-            let distance = mouseX - droidX;
-            let acceleration = Math.abs(distance * accelMod) / 100;
-
-            if (Math.abs(Math.round(droidX) - mouseX) !== 1) {
-                if (droidX < mouseX) {
-                setDroidX((prevX) => prevX + speed * acceleration);
-                setToTheRight(true);
-                } else {
-                setDroidX((prevX) => prevX - speed * acceleration);
-                setToTheRight(false);
-                }
-            }
-            };
-
-            const interval = setInterval(moveDroid, 10);
-            return () => clearInterval(interval);
-        }
-    }, [mouseX, droidX, speed, accelMod, isExiting, exitInProgress]);
+        if (isExiting || exitInProgress) return undefined;
+        applyDroidTransform();
+        startLoop();
+        return () => {
+            if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+            rafRef.current = null;
+            lastTimeRef.current = null;
+        };
+    }, [isExiting, exitInProgress]);
 
     // Attach event listener for mouse movement
     useEffect(() => {
@@ -177,7 +212,7 @@ export const BB8animation = ({ audioEnabled, onExit, exitInProgress = false }) =
         <div id="bb8-animate">
 
         {/* BB-8 */}
-        <div ref={bb8Ref} className="bb8" style={{ transform: `translateX(${droidX}px)` }}>
+        <div ref={bb8Ref} className="bb8">
             <div
             className={`antennas ${toTheRight ? "right" : ""}`}
             style={{
@@ -211,14 +246,7 @@ export const BB8animation = ({ audioEnabled, onExit, exitInProgress = false }) =
                 </div>
                 <div className="stripe three"></div>
             </div>
-            <div
-              className="ball"
-              style={
-                exitInProgress || isExiting
-                  ? undefined
-                  : { transform: `rotateZ(${droidX / 2}deg)` }
-              }
-            >
+            <div ref={ballRef} className="ball">
                 <div className="lines one"></div>
                 <div className="lines two"></div>
                 <div className="ring one"></div>
