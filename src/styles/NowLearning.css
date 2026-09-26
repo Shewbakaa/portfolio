@@ -52,12 +52,63 @@
   gap: 6px;
 }
 
+.now-learning__controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.now-learning__play {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  background: var(--cream);
+  color: var(--ink);
+  border: 2px solid var(--cream);
+  border-radius: 4px;
+  cursor: pointer !important;
+  transition: transform 0.1s;
+}
+
+/* Beat the canvas-wide `.canvas-container:not(.canvas-intro) * { cursor: grab !important }` */
+.canvas-container:not(.canvas-intro) .now-learning__play,
+.canvas-container:not(.canvas-intro) .now-learning__play *,
+.canvas-container.canvas-panning:not(.canvas-intro) .now-learning__play {
+  cursor: pointer !important;
+}
+
+.now-learning__play:hover {
+  transform: scale(1.08);
+}
+
+.now-learning__play:active {
+  transform: scale(0.92);
+}
+
+.now-learning__play:focus-visible {
+  outline: 2px dashed var(--cream);
+  outline-offset: 2px;
+}
+
+.now-learning__play svg {
+  width: 12px;
+  height: 12px;
+  fill: currentColor;
+}
+
 .now-learning__dot {
   width: 9px;
   height: 9px;
   border-radius: 50%;
   background: #ff2b2b;
   box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.3);
+  opacity: 0.25;
+}
+
+/* REC only blinks while the tape is rolling */
+.now-learning.is-playing .now-learning__dot {
   animation: nlBlink 1s steps(1, end) infinite;
 }
 
@@ -89,76 +140,48 @@
   overflow: hidden;
 }
 
-.cassette__window {
+/* Reels, tape and head are drawn/animated in NowLearning.jsx */
+.cassette__svg {
   position: absolute;
-  left: 14px;
-  right: 14px;
-  top: 14px;
-  height: 34px;
-  border-radius: 8px;
-  background: rgba(250, 250, 245, 0.08);
-  border: 2px solid rgba(250, 250, 245, 0.18);
-}
-
-.cassette__spool {
-  position: absolute;
-  top: 22px;
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: rgba(250, 250, 245, 0.08);
-  border: 2px solid rgba(250, 250, 245, 0.45);
-  display: grid;
-  place-items: center;
-}
-
-.cassette__spoolInner {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  border: 2px dashed rgba(250, 250, 245, 0.75);
-  animation: spoolSpin 4s linear infinite;
-}
-
-.cassette__spool--left {
-  left: 48px;
-}
-
-.cassette__spool--right {
-  right: 48px;
-}
-
-.cassette__spool--right .cassette__spoolInner {
-  animation-direction: reverse;
-}
-
-.now-learning:hover .cassette__spoolInner {
-  animation-play-state: paused;
-}
-
-@keyframes spoolSpin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.cassette__ribbon {
-  position: absolute;
-  left: 0;
-  bottom: 8px;
+  inset: 0;
   width: 100%;
-  height: 48px;
-  opacity: 0.95;
+  height: 100%;
 }
 
-.cassette__side {
-  position: absolute;
-  bottom: 10px;
-  left: 12px;
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 12px;
-  letter-spacing: 0.12em;
-  color: rgba(250, 250, 245, 0.85);
+.cassette__window {
+  fill: rgba(250, 250, 245, 0.08);
+  stroke: rgba(250, 250, 245, 0.18);
+  stroke-width: 2;
+}
+
+.cassette__pack {
+  fill: #4a2f1d;
+  stroke: rgba(0, 0, 0, 0.45);
+  stroke-width: 1;
+}
+
+.cassette__hub {
+  fill: rgba(250, 250, 245, 0.92);
+}
+
+.cassette__tooth,
+.cassette__hubHole {
+  fill: #111;
+}
+
+.cassette__tape {
+  fill: none;
+  stroke: #4a2f1d;
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.cassette__guide {
+  fill: rgba(250, 250, 245, 0.7);
+}
+
+.cassette__head {
+  fill: rgba(250, 250, 245, 0.55);
 }
 
 .now-learning__text {

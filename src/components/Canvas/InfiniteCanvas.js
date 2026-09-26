@@ -18,6 +18,7 @@ import { TimelineStrip } from '../TimelineStrip';
 import { ContactCluster } from '../ContactCluster';
 import { StickyNotes } from '../StickyNotes';
 import { NowLearning } from '../NowLearning';
+import { startTapeQuietly } from '../tapePlayer';
 import { NowPlaying } from '../NowPlaying';
 import { VinylShelf } from '../VinylShelf';
 import { CookingCard } from '../CookingCard';
@@ -557,6 +558,8 @@ export const InfiniteCanvas = ({ children }) => {
 
   const exitIntro = () => {
     setExitInProgress(true);
+    // Inside the click handler so browsers treat it as user-initiated playback
+    startTapeQuietly();
 
     gsap.to('.canvas-intro-overlay .enterButton', { opacity: 0, duration: 0.3 });
     gsap.to('.canvas-intro-overlay .volume', { opacity: 0, duration: 0.3 });
