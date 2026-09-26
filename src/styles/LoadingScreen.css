@@ -183,89 +183,13 @@ canvas {
    }
  }
 
-/* Hand-drawn enter button — paths are jittered in SketchEnterButton.js */
-.sketch-enter {
-  display: block;
+/* Intro "let's go!" button — look lives in SketchButton.css */
+.sketch-btn.sketch-enter {
   width: 280px;
-  padding: 0;
-  border: none;
-  background: none;
-  cursor: pointer !important;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-  transition: transform 0.12s;
-}
-
-.sketch-enter:active {
-  transform: scale(0.95) rotate(1deg);
-}
-
-.sketch-enter svg {
-  display: block;
-  width: 100%;
-  height: auto;
-  overflow: visible;
-}
-
-.sketch-enter:focus {
-  outline: none;
-}
-
-.sketch-enter:focus-visible {
-  outline: 2px dashed var(--black);
-  outline-offset: 4px;
-}
-
-.sketch-enter__outline,
-.sketch-enter__shadow,
-.sketch-enter__arrow {
-  fill: none;
-  stroke: var(--black);
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.sketch-enter__outline {
-  stroke-width: 3;
-}
-
-.sketch-enter__outline--inner {
-  stroke-width: 1.6;
-  opacity: 0.7;
-}
-
-.sketch-enter__shadow {
-  stroke-width: 2.5;
-  opacity: 0.25;
-}
-
-.sketch-enter__arrow {
-  stroke-width: 2.5;
-}
-
-.sketch-enter__hatch {
-  fill: none;
-  stroke: var(--yellow);
-  stroke-width: 7;
-  stroke-linecap: round;
-}
-
-.sketch-enter__label {
-  font-family: 'Cabin Sketch', cursive;
-  font-weight: 700;
-  font-size: 42px;
-  fill: var(--black);
-  /* Cabin Sketch tops out at 700 — a matching stroke thickens the chalk letters */
-  stroke: var(--black);
-  stroke-width: 1px;
-  stroke-linejoin: round;
-  paint-order: stroke;
-  pointer-events: none;
-  user-select: none;
 }
 
 @media (max-width: 600px) {
-  .sketch-enter {
+  .sketch-btn.sketch-enter {
     width: 210px;
   }
 }

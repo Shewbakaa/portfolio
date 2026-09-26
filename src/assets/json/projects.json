@@ -2,6 +2,7 @@
   {
     "id": 1,
     "title": "Pacman-3D",
+    "note": "ghosts in 3D!",
     "createdDate": "2024-02-16",
     "type": "video",
     "animationKey": "pacman",
@@ -12,6 +13,7 @@
   {
     "id": 2,
     "title": "CCDP",
+    "note": "built for hard hats",
     "createdDate": "2022-05-21",
     "type": "lottie",
     "animationKey": "CCDP",
@@ -22,6 +24,7 @@
   {
     "id": 3,
     "title": "Adopt Not Shop",
+    "note": "adopt, don't shop",
     "createdDate": "2024-02-17",
     "type": "lottie",
     "animationKey": "ANS",
@@ -32,6 +35,7 @@
   {
     "id": 4,
     "title": "Valentine's Game",
+    "note": "be mine?",
     "createdDate": "2024-02-21",
     "type": "lottie",
     "animationKey": "Valentine",
@@ -43,6 +47,7 @@
   {
     "id": 5,
     "title": "Chat-Bot",
+    "note": "it talks back",
     "createdDate": "2024-02-04",
     "type": "lottie",
     "animationKey": "Chatbot",
@@ -53,6 +58,7 @@
   {
     "id": 6,
     "title": "Portfolio",
+    "note": "you are here",
     "createdDate": "2024-09-04",
     "type": "lottie",
     "animationKey": "Portfolio",
@@ -63,6 +69,7 @@
   {
     "id": 7,
     "title": "Mini Projects",
+    "note": "tiny experiments",
     "createdDate": "2020-10-02",
     "type": "lottie",
     "animationKey": "Mini-projects",
@@ -73,6 +80,7 @@
   {
     "id": 8,
     "title": "Video Game Rental",
+    "note": "press start to rent",
     "createdDate": "2021-04-20",
     "type": "lottie",
     "animationKey": "video-game",
@@ -83,6 +91,7 @@
   {
     "id": 9,
     "title": "Prop-Chain",
+    "note": "houses on the blockchain",
     "createdDate": "2023-05-17",
     "type": "lottie-prop",
     "animationKey": "PropChain-1",
@@ -95,6 +104,7 @@
   {
     "id": 10,
     "title": "Jerryssa",
+    "note": "they said yes!",
     "createdDate": "2026-02-19",
     "type": "lottie-prop",
     "animationKey": "Card-Heart",
@@ -106,6 +116,7 @@
   {
     "id": 11,
     "title": "RSVP",
+    "note": "party time",
     "createdDate": "2025-08-05",
     "type": "lottie-prop",
     "animationKey": "rsvp",
@@ -117,6 +128,7 @@
   {
     "id": 12,
     "title": "Secret Santa",
+    "note": "shh... it's a secret",
     "createdDate": "2025-11-17",
     "type": "lottie-prop",
     "animationKey": "secretSanta",
@@ -128,6 +140,7 @@
   {
     "id": 13,
     "title": "Voting System",
+    "note": "salsa vs costumes",
     "createdDate": "2025-12-12",
     "type": "lottie-prop",
     "animationKey": "Voting",
@@ -139,6 +152,7 @@
   {
     "id": 14,
     "title": "Umbraco Base",
+    "note": "a solid starting point",
     "createdDate": "2026-02-25",
     "type": "lottie-prop",
     "animationKey": "umbracoBase",
@@ -149,6 +163,7 @@
   {
     "id": 15,
     "title": "Food Services",
+    "note": "lunch, organized",
     "createdDate": "2026-02-15",
     "type": "lottie-prop",
     "animationKey": "foodservices",
@@ -160,6 +175,7 @@
   {
     "id": 16,
     "title": "Meal Roulette",
+    "note": "spin for dinner",
     "createdDate": "2026-03-31",
     "type": "lottie-prop",
     "animationKey": "mealRoulette",

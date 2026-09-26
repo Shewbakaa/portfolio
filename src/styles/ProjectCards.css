@@ -1,4 +1,4 @@
-/* Project cards on the infinite canvas (tactile index-card aesthetic) */
+/* Project cards on the infinite canvas: taped-in sketchbook pages that flip over */
 
 .project-cards-root {
   position: absolute;
@@ -11,148 +11,289 @@
   z-index: 4;
 }
 
+/* Positioned + dragged by GSAP (transform); keep visual transforms on children */
 .project-card {
   position: absolute;
   width: 280px;
   height: 380px;
-  /* Pop surface (article background). Intentionally separate from the hero background. */
-  background: var(--pc-bg, var(--cream));
-  border: var(--border);
-  box-shadow: var(--shadow-md);
+  pointer-events: auto;
+}
+
+.project-card__page {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  perspective: 1100px;
   transform: rotate(var(--pc-rot, 0deg));
   transform-origin: 50% 12%;
-  box-sizing: border-box;
-  pointer-events: auto;
-  transition:
-    width 0.3s ease,
-    height 0.3s ease,
-    transform 0.16s ease,
-    box-shadow 0.16s ease,
-    background-color 0.16s ease;
+  transition: transform 0.18s ease;
+}
+
+.project-card:hover .project-card__page {
+  transform: rotate(0deg) translate(-2px, -3px);
+}
+
+.project-card__leaf {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.7s cubic-bezier(0.3, 0.7, 0.3, 1);
+}
+
+.project-card--flipped .project-card__leaf {
+  transform: rotateY(180deg);
+}
+
+/* Washi tape: symmetric, so it reads the same from either side of the page */
+.project-card__tape {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  width: 84px;
+  height: 26px;
+  margin-left: -42px;
+  background: rgba(245, 200, 66, 0.72);
+  transform: translateZ(1px) rotate(-4deg);
+  z-index: 3;
+  pointer-events: none;
+}
+
+.project-card__tape::before,
+.project-card__tape::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  background: repeating-linear-gradient(to bottom, transparent 0 3px, #fafaf5 3px 6px);
+}
+
+.project-card__tape::before {
+  left: -3px;
+}
+
+.project-card__tape::after {
+  right: -3px;
+}
+
+.project-card__face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.project-card__face--back {
+  transform: rotateY(180deg);
+}
+
+/* Static shadow layer (not clipped) so the torn sheet above stays filter-free */
+.project-card__shadow {
+  position: absolute;
+  inset: 0 0 2% 0;
+  box-shadow:
+    1px 2px 0 rgba(10, 10, 10, 0.08),
+    3px 8px 16px rgba(10, 10, 10, 0.14);
+  pointer-events: none;
+}
+
+.project-card__sheet {
+  position: absolute;
+  inset: 0;
+  background: #fdfcf6;
+  clip-path: polygon(
+    0 0, 100% 0, 100% 97%, 95% 99%, 88% 97.5%, 80% 99.5%, 70% 97.8%, 61% 99.4%,
+    50% 97.6%, 40% 99.5%, 30% 97.7%, 20% 99.3%, 11% 97.8%, 4% 99.4%, 0 98%
+  );
+}
+
+.project-card__face--back .project-card__sheet {
+  background: #fbf8ee;
+}
+
+/* ── Front ── */
+.project-card__title {
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  top: 20px;
+  margin: 0;
+  font-family: 'Cabin Sketch', cursive;
+  font-weight: 700;
+  font-size: 28px;
+  line-height: 1.05;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.project-card__title.is-long {
+  font-size: 23px;
+  top: 23px;
+}
+
+.project-card__underline {
+  position: absolute;
+  left: 18px;
+  top: 54px;
+  width: 160px;
+  height: 10px;
   overflow: visible;
 }
 
-.project-card::before {
-  content: '';
+.project-card__underline path {
+  fill: none;
+  stroke: var(--yellow);
+  stroke-width: 5;
+  stroke-linecap: round;
+  opacity: 0.85;
+}
+
+.project-card__frame {
   position: absolute;
-  inset: 8px;
-  border: 2px dashed rgba(10, 10, 10, 0.18);
-  pointer-events: none;
+  left: 18px;
+  right: 18px;
+  top: 74px;
+  height: 190px;
 }
 
-.project-card:hover {
-  transform: rotate(0deg) translate(-3px, -3px);
-  box-shadow: var(--shadow-lg);
-}
-
-.project-card--open {
-  background: color-mix(in srgb, var(--pc-bg, var(--cream)) 88%, var(--yellow));
-}
-
-.project-card__hit {
+.project-card__frameLines {
   position: absolute;
   inset: 0;
-  background: transparent;
-  border: 0;
-  padding: 0;
-  cursor: pointer;
-  z-index: 1; /* sits above card surface but below buttons */
+  width: 100%;
+  height: 100%;
+  overflow: visible;
 }
 
-.project-card__inner {
-  position: relative;
-  z-index: 2;
-  transform-origin: 50% 18%;
-  will-change: transform;
-  overflow: hidden; /* clip card contents, not tape */
+.project-card__frameLines path {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  opacity: 0.55;
+  vector-effect: non-scaling-stroke;
 }
 
-/* Reuse AboutCard tape motif on project cards */
-.project-card__tape.about-card-tape {
-  top: -12px;
-  width: 76px;
-  height: 26px;
-  z-index: 999;
-  pointer-events: none;
-}
-
-.project-card__header {
-  position: relative;
-  padding: 12px 12px 6px;
-}
-
-.project-card__pin {
-  position: absolute;
-  right: 16px;
-  top: 14px;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: var(--yellow);
-  border: 2px solid var(--ink);
-  box-shadow: 2px 2px 0 var(--ink);
-}
-
-.project-card__pin::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 4px;
-  height: 4px;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  background: var(--ink);
-}
-
-.project-card__title {
-  margin: 0;
-  padding-right: 32px;
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 26px;
-  letter-spacing: 0.03em;
-  color: var(--ink);
-  line-height: 1;
-}
-
-.project-card__meta {
-  margin-top: 6px;
-  font-family: var(--font-hand);
-  font-size: 14px;
-  font-weight: 700;
-  color: color-mix(in srgb, var(--ink) 82%, #0000);
+.project-card__frameLines path.is-inner {
+  stroke-width: 1;
+  opacity: 0.3;
 }
 
 .project-card__hero {
-  position: relative;
-  height: 150px;
-  background-color: var(--cream);
-  margin: 0px 20px;
+  position: absolute;
+  inset: 12px;
+  display: grid;
+  place-items: center;
 }
 
-/* Shimmer skeleton */
+.project-card__note {
+  position: absolute;
+  left: 22px;
+  right: 90px;
+  top: 280px;
+  margin: 0;
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  font-size: 22px;
+  line-height: 1.05;
+  color: var(--teal);
+  transform: rotate(-3deg);
+  transform-origin: left center;
+}
+
+.project-card__hint {
+  position: absolute;
+  left: 22px;
+  bottom: 22px;
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--ink);
+  opacity: 0.5;
+}
+
+.project-card__date {
+  position: absolute;
+  right: 22px;
+  bottom: 22px;
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  font-size: 17px;
+  color: #8a7a6a;
+}
+
+/* ── Back ── */
+.project-card__backTitle {
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  top: 20px;
+  margin: 0;
+  font-family: 'Cabin Sketch', cursive;
+  font-weight: 700;
+  font-size: 24px;
+  line-height: 1.05;
+  color: var(--ink);
+}
+
+.project-card__desc {
+  position: absolute;
+  left: 22px;
+  right: 22px;
+  top: 64px;
+  margin: 0;
+  font-family: 'Figtree', sans-serif;
+  font-size: 13.5px;
+  line-height: 21px;
+  color: var(--ink);
+  /* Faint ruled lines under the text */
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0 20px,
+    rgba(91, 142, 230, 0.2) 20px 21px
+  );
+}
+
+.project-card__links {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 42px;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+
+.sketch-btn.project-card__link {
+  width: 124px;
+}
+
+.project-card__hint--back {
+  left: 0;
+  right: 0;
+  bottom: 14px;
+  text-align: center;
+}
+
+/* ── Animation slot ── */
 .lottie-placeholder {
   width: 100%;
-  height: 150px;
-  background: var(--cream);
+  height: 100%;
   position: relative;
   overflow: hidden;
-  border: 2px solid rgba(10, 10, 10, 0.12);
-  box-shadow: 2px 2px 0 rgba(10, 10, 10, 0.12);
 }
+
 .lottie-placeholder-shimmer {
   display: block;
   width: 100%;
   height: 100%;
-  background: linear-gradient(
-    90deg,
-    var(--cream) 0%,
-    #e0dfd8 50%,
-    var(--cream) 100%
-  );
+  background: linear-gradient(90deg, transparent 0%, rgba(10, 10, 10, 0.06) 50%, transparent 100%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
+
 @keyframes shimmer {
   0% {
     background-position: 200% 0;
@@ -192,136 +333,6 @@
   height: 100%;
   object-fit: contain;
   display: block;
-  filter: drop-shadow(2px 2px 0 rgba(10, 10, 10, 0.25));
-}
-
-.project-card__body {
-  position: relative;
-  padding: 8px 12px 10px;
-}
-
-.project-card__desc {
-  margin: 0;
-  font-family: 'Figtree', sans-serif;
-  font-size: 12.5px;
-  line-height: 1.35;
-  color: var(--ink);
-  opacity: 0.95;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.project-card__desc.is-expanded {
-  -webkit-line-clamp: initial;
-  overflow: visible;
-}
-
-.project-card__footer {
-  position: relative;
-  padding: 0 12px 12px;
-  display: flex;
-  gap: 10px;
-  z-index: 3; /* above hit-area */
-}
-
-.project-card__btn--primary {
-  background: var(--ink);
-  color: var(--cream);
-}
-
-.project-card__btn--primary:hover {
-  background: var(--yellow);
-  color: var(--ink);
-}
-
-/* Compact / Expanded modes */
-.project-card--compact {
-  width: 160px;
-  height: 180px;
-  cursor: pointer;
-}
-
-.project-card--compact .project-card-desc,
-.project-card--compact .project-card-actions {
-  opacity: 0;
-  max-height: 0;
-  overflow: hidden;
-  pointer-events: none;
-  transition: opacity 0.2s ease, max-height 0.3s ease;
-}
-
-.project-card--expanded .project-card-desc,
-.project-card--expanded .project-card-actions {
-  opacity: 1;
-  max-height: 220px;
-  transition: opacity 0.25s ease, max-height 0.3s ease;
-}
-
-.project-card--compact .project-card__hero {
-  height: 110px;
-}
-
-.project-card--compact .project-card__title {
-  font-size: 20px;
-}
-
-.project-card--compact .lottie-placeholder {
-  height: 110px;
-}
-
-/* Force-expanded close button */
-.project-card-close {
-  position: absolute;
-  top: 6px;
-  right: 8px;
-  font-size: 18px;
-  cursor: pointer;
-  font-family: var(--font-hand);
-  color: var(--ink);
-  background: rgba(250, 250, 245, 0.9);
-  border: 2px solid rgba(10, 10, 10, 0.25);
-  line-height: 1;
-  z-index: 10;
-  padding: 2px 8px;
-}
-
-.project-card__btn {
-  appearance: none;
-  border: var(--border);
-  background: var(--cream);
-  color: var(--ink);
-  font-family: var(--font-hand);
-  font-weight: 800;
-  font-size: 15px;
-  padding: 7px 10px;
-  box-shadow: var(--shadow-sm);
-  text-decoration: none;
-  cursor: pointer;
-  transition:
-    transform 0.14s ease,
-    box-shadow 0.14s ease,
-    background-color 0.14s ease;
-}
-
-.project-card__btn:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: var(--shadow-md);
-  background: var(--yellow);
-}
-
-.project-card__btn:active {
-  transform: translate(1px, 1px);
-  box-shadow: var(--shadow-sm);
-}
-
-.project-card__btn--demo {
-  background: color-mix(in srgb, var(--cream) 70%, #6bcb77);
-}
-
-.project-card__btn--more {
-  margin-left: auto;
 }
 
 .sr-only {

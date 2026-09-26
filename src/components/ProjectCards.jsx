@@ -1,9 +1,11 @@
-import React, { useEffect, useMemo, useRef, useState, memo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState, memo } from 'react';
 import gsap from 'gsap';
 import { Draggable } from 'gsap/Draggable';
 import Lottie from 'lottie-react';
 import '../styles/ProjectCards.css';
 import { useIsInView } from '../hooks/useIsInView';
+import { SketchButton } from './SketchButton';
+import { makeWobble, seededRandom, sketchBox, sketchLine } from './sketch/sketchPaths';
 
 import projectsData from '../assets/json/projects.json';
 
@@ -89,61 +91,35 @@ const getCardPos = (p, i) => {
   };
 };
 
-const clampText = (s, max = 160) => {
-  const text = String(s || '').trim();
-  if (text.length <= max) return text;
-  return `${text.slice(0, max).trimEnd()}…`;
+// "2024-02-16" -> "Feb '24" (parsed by hand so timezones can't shift the month)
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const formatCardDate = (d) => {
+  const [y, m] = String(d || '').split('-').map(Number);
+  if (!y || !m) return '';
+  return `${MONTHS[m - 1]} '${String(y).slice(-2)}`;
 };
 
 gsap.registerPlugin(Draggable);
 
-const ZOOM_COMPACT = 0.6;
-const ZOOM_EXPANDED = 0.85;
-
-// Deterministic "never repeats" (within practical ranges) pop colors per card.
-// Golden-angle hue stepping spreads colors evenly without collisions.
-const pcHue = (i) => (i * 137.508) % 360;
-
-const zoomLevelFor = (z) =>
-  z < ZOOM_COMPACT ? 'compact' : z >= ZOOM_EXPANDED ? 'expanded' : 'normal';
-
-// Tracks canvas zoom from InfiniteCanvas's `canvas:zoom` event. `zoomLevel` only
-// changes when a threshold is crossed, so cards re-render only then.
-function useCanvasZoom() {
-  const zoomRef = useRef(1);
-  const [zoomLevel, setZoomLevel] = useState(() => zoomLevelFor(1));
-
-  useEffect(() => {
-    const onZoom = (e) => {
-      const z = e.detail?.zoom;
-      if (typeof z !== 'number') return;
-      zoomRef.current = z;
-      setZoomLevel(zoomLevelFor(z));
+// Seeded hand-drawn strokes for a card's front: highlighter underline + pencil frame
+const useCardSketch = (id) =>
+  useMemo(() => {
+    const wobble = makeWobble(seededRandom(id * 7919 + 13));
+    return {
+      underline: sketchLine(2, 6, 150 + wobble(30), 5, 4, wobble),
+      frame: sketchBox(4, 4, 236, 182, 5, wobble),
+      frameInner: sketchBox(6, 6, 232, 179, 6, wobble),
     };
-    window.addEventListener('canvas:zoom', onZoom);
-    return () => window.removeEventListener('canvas:zoom', onZoom);
-  }, []);
+  }, [id]);
 
-  return { zoomRef, zoomLevel };
-}
-
-const ProjectCard = memo(function ProjectCard({
-  p,
-  i,
-  zoomRef,
-  zoomLevel,
-  forceExpanded,
-  setForceExpandedId,
-}) {
+const ProjectCard = memo(function ProjectCard({ p, i, flipped, onToggleFlip }) {
   const cardRef = useRef(null);
   const draggableRef = useRef(null);
+  const toggleRef = useRef(onToggleFlip);
+  toggleRef.current = onToggleFlip;
   const { left, top, rotate } = getCardPos(p, i);
   const { inView, isNear } = useIsInView(cardRef);
-
-  const compact = zoomLevel === 'compact' && !forceExpanded;
-  const expanded = zoomLevel === 'expanded' || forceExpanded;
-
-  const [open, setOpen] = useState(false);
+  const sketch = useCardSketch(p.id);
 
   // Latches true the first time the card is near (or immediately for priority
   // cards) so assets stay loaded + mounted and never restart from frame 0.
@@ -157,8 +133,8 @@ const ProjectCard = memo(function ProjectCard({
     const el = cardRef.current;
     if (!el) return undefined;
 
-    // Re-enable dragging (same plugin used by AboutCard).
-    // Use transforms for drag so we don't mutate absolute left/top.
+    // Drag with transforms so absolute left/top stay put. Draggable's onClick
+    // only fires for a press without movement, so a drag never flips the page.
     draggableRef.current?.kill?.();
     const d = Draggable.create(el, {
       type: 'x,y',
@@ -166,11 +142,18 @@ const ProjectCard = memo(function ProjectCard({
       inertia: false,
       cursor: 'grab',
       activeCursor: 'grabbing',
+      // GSAP defaults this to true; pressing a link shouldn't start a drag
+      dragClickables: false,
       onPress(e) {
         e?.stopPropagation?.();
       },
       onDrag(e) {
         e?.stopPropagation?.();
+      },
+      onClick(e) {
+        // Draggable still reports clicks on links/buttons; let those do their own thing
+        if (e?.target?.closest?.('a, button')) return;
+        toggleRef.current(p.id);
       },
     })[0];
 
@@ -179,8 +162,7 @@ const ProjectCard = memo(function ProjectCard({
       d?.kill?.();
       draggableRef.current = null;
     };
-  }, []);
-
+  }, [p.id]);
   useEffect(() => {
     if (isNear) setActivated(true);
   }, [isNear]);
@@ -206,161 +188,140 @@ const ProjectCard = memo(function ProjectCard({
   }, [activated, p.type, p.animationKey, p.animationKey2, p.title]);
 
   // Play only while on screen; pause keeps the current frame so it resumes in place
+  // Play only while the front is on screen; pause keeps the frame so it resumes in place
   useEffect(() => {
+    const shouldPlay = inView && !flipped;
     [lottieRef.current, lottieRef2.current].forEach((anim) => {
       if (!anim) return;
-      if (inView) anim.play();
+      if (shouldPlay) anim.play();
       else anim.pause();
     });
 
     const video = videoRef.current;
     if (video) {
-      if (inView) video.play().catch(() => {});
+      if (shouldPlay) video.play().catch(() => {});
       else video.pause();
     }
-  }, [inView, anims, activated]);
+  }, [inView, flipped, anims, activated]);
+
+  const hero =
+    p.type === 'video' && activated ? (
+      <video
+        ref={videoRef}
+        className="project-card__img"
+        aria-label={p.title}
+        muted
+        loop
+        playsInline
+        preload="auto"
+      >
+        {p.videoSources.map((s) => (
+          <source key={s.src} src={s.src} type={s.type} />
+        ))}
+      </video>
+    ) : anims?.primary ? (
+      p.type === 'lottie-prop' ? (
+        <div className="project-card__lottieStack" aria-hidden="true">
+          <Lottie lottieRef={lottieRef} animationData={anims.primary} loop autoplay={false} />
+          {anims.secondary ? (
+            <Lottie
+              lottieRef={lottieRef2}
+              className="project-card__lottieProp"
+              animationData={anims.secondary}
+              loop
+              autoplay={false}
+            />
+          ) : null}
+        </div>
+      ) : (
+        <div className="project-card__lottie" aria-hidden="true">
+          <Lottie lottieRef={lottieRef} animationData={anims.primary} loop autoplay={false} />
+        </div>
+      )
+    ) : (
+      <div className="lottie-placeholder" aria-hidden>
+        <span className="lottie-placeholder-shimmer" />
+      </div>
+    );
 
   return (
     <article
       ref={cardRef}
       id={`project-card-${toDomId(p.__assetKey) || p.id}`}
-      className={[
-        'project-card',
-        compact ? 'project-card--compact' : '',
-        expanded ? 'project-card--expanded' : '',
-        open ? 'project-card--open' : '',
-      ]
-        .filter(Boolean)
-        .join(' ')}
-      style={{
-        left,
-        top,
-        ['--pc-rot']: `${rotate}deg`,
-        // Pop background for the article surface (NOT the hero background).
-        ['--pc-bg']: `hsl(${pcHue(i)} 92% 74%)`,
-      }}
+      className={`project-card${flipped ? ' project-card--flipped' : ''}`}
+      style={{ left, top, ['--pc-rot']: `${rotate}deg` }}
       onMouseDown={(e) => e.stopPropagation()}
       onPointerDown={(e) => e.stopPropagation()}
       onTouchStart={(e) => e.stopPropagation()}
     >
-      {forceExpanded ? (
-        <button
-          type="button"
-          className="project-card-close"
-          onClick={(e) => {
-            e.stopPropagation();
-            setForceExpandedId(null);
-          }}
-          aria-label="Close"
-        >
-          ×
-        </button>
-      ) : null}
+      <div className="project-card__page">
+        <div className="project-card__leaf">
+          <span className="project-card__tape" aria-hidden="true" />
 
-      <div className="about-card-tape project-card__tape" aria-hidden="true" />
+          {/* Front: the sketch */}
+          <div className="project-card__face project-card__face--front" aria-hidden={flipped}>
+            <span className="project-card__shadow" aria-hidden="true" />
+            <div className="project-card__sheet">
+              <h3 className={`project-card__title${p.title.length > 14 ? ' is-long' : ''}`}>{p.title}</h3>
+              <svg className="project-card__underline" viewBox="0 0 160 10" aria-hidden="true">
+                <path d={sketch.underline} />
+              </svg>
 
-      <button
-        type="button"
-        className="project-card__hit"
-        onClick={() => {
-          if (zoomRef.current < ZOOM_EXPANDED) {
-            setForceExpandedId(p.id);
-            setOpen(true);
-            return;
-          }
-          setOpen((v) => !v);
-        }}
-        aria-expanded={open || forceExpanded}
-      >
-        <span className="sr-only">Open {p.title}</span>
-      </button>
+              <div className="project-card__frame">
+                <svg className="project-card__frameLines" viewBox="0 0 244 190" preserveAspectRatio="none" aria-hidden="true">
+                  <path d={sketch.frame} />
+                  <path d={sketch.frameInner} className="is-inner" />
+                </svg>
+                <div className="project-card__hero">{hero}</div>
+              </div>
 
-      <div className="project-card__inner">
-        <header className="project-card__header">
-          <div className="project-card__pin" aria-hidden="true" />
-          <h3 className="project-card__title">{p.title}</h3>
-        </header>
+              {p.note ? <p className="project-card__note">{p.note}</p> : null}
+              <span className="project-card__hint" aria-hidden="true">flip ↻</span>
+              <span className="project-card__date">{formatCardDate(p.createdDate)}</span>
+            </div>
+          </div>
 
-        <div className="project-card__hero" aria-hidden={false}>
-          {p.type === 'video' && activated ? (
-            <video
-              ref={videoRef}
-              className="project-card__img"
-              aria-label={p.title}
-              muted
-              loop
-              playsInline
-              preload="auto"
-            >
-              {p.videoSources.map((s) => (
-                <source key={s.src} src={s.src} type={s.type} />
-              ))}
-            </video>
-          ) : anims?.primary ? (
-            p.type === 'lottie-prop' ? (
-              <div className="project-card__lottieStack" aria-hidden="true">
-                <Lottie lottieRef={lottieRef} animationData={anims.primary} loop autoplay={false} />
-                {anims.secondary ? (
-                  <Lottie
-                    lottieRef={lottieRef2}
-                    className="project-card__lottieProp"
-                    animationData={anims.secondary}
-                    loop
-                    autoplay={false}
+          {/* Back: the notes */}
+          <div className="project-card__face project-card__face--back" aria-hidden={!flipped}>
+            <span className="project-card__shadow" aria-hidden="true" />
+            <div className="project-card__sheet">
+              <h3 className="project-card__backTitle">{p.title}</h3>
+              <p className="project-card__desc">{p.Desc}</p>
+              <div className="project-card__links">
+                <SketchButton
+                  className="project-card__link"
+                  label="GitHub"
+                  href={p.link}
+                  seed={p.id * 31 + 1}
+                  ariaLabel={`${p.title} on GitHub`}
+                />
+                {p.demo ? (
+                  <SketchButton
+                    className="project-card__link"
+                    label="Live ↗"
+                    href={p.demo}
+                    seed={p.id * 31 + 2}
+                    hatchColor="var(--teal)"
+                    ariaLabel={`${p.title} live demo`}
                   />
                 ) : null}
               </div>
-            ) : (
-              <div className="project-card__lottie" aria-hidden="true">
-                <Lottie lottieRef={lottieRef} animationData={anims.primary} loop autoplay={false} />
-              </div>
-            )
-          ) : (
-            <div className="lottie-placeholder" aria-hidden>
-              <span className="lottie-placeholder-shimmer" />
+              <span className="project-card__hint project-card__hint--back" aria-hidden="true">flip back ↺</span>
             </div>
-          )}
+          </div>
         </div>
-
-        <div className="project-card__body project-card-desc">
-          <p className={`project-card__desc${open || forceExpanded ? ' is-expanded' : ''}`}>
-            {open || forceExpanded ? p.Desc : clampText(p.Desc, 170)}
-          </p>
-        </div>
-
-        <footer className="project-card__footer project-card-actions">
-          <a className="project-card__btn project-card__btn--primary" href={p.link} target="_blank" rel="noreferrer">
-            GitHub
-          </a>
-          {p.demo ? (
-            <a
-              className="project-card__btn project-card__btn--demo project-card__btn--primary"
-              href={p.demo}
-              target="_blank"
-              rel="noreferrer"
-            >
-              Live
-            </a>
-          ) : null}
-          <button
-            type="button"
-            className="project-card__btn project-card__btn--more"
-            onClick={(e) => {
-              e.stopPropagation();
-              setOpen((v) => !v);
-            }}
-          >
-            {open ? 'Less' : 'More'}
-          </button>
-        </footer>
       </div>
+
+      {/* Keyboard access to the flip (mouse users click the page itself) */}
+      <button type="button" className="sr-only" onClick={() => onToggleFlip(p.id)} aria-pressed={flipped}>
+        {flipped ? `Show ${p.title} sketch` : `Show ${p.title} details`}
+      </button>
     </article>
   );
 });
 
 export const ProjectCards = () => {
-  const { zoomRef, zoomLevel } = useCanvasZoom();
-  const [forceExpandedId, setForceExpandedId] = useState(null);
+  const [flippedId, setFlippedId] = useState(null);
   const rootRef = useRef(null);
 
   const projects = useMemo(() => {
@@ -368,12 +329,18 @@ export const ProjectCards = () => {
     return [...resolved].sort((a, b) => parseDate(b.createdDate) - parseDate(a.createdDate));
   }, []);
 
+  // One page flipped at a time; clicking a flipped page turns it back
+  const toggleFlip = useCallback((id) => {
+    setFlippedId((prev) => (prev === id ? null : id));
+  }, []);
+
+  // Clicking anywhere outside the cards flips the open page back
   useEffect(() => {
     const onDocDown = (e) => {
       const root = rootRef.current;
       if (!root) return;
       if (root.contains(e.target)) return;
-      setForceExpandedId(null);
+      setFlippedId(null);
     };
     document.addEventListener('pointerdown', onDocDown, true);
     return () => document.removeEventListener('pointerdown', onDocDown, true);
@@ -386,13 +353,10 @@ export const ProjectCards = () => {
           key={p.id}
           p={p}
           i={i}
-          zoomRef={zoomRef}
-          zoomLevel={zoomLevel}
-          forceExpanded={forceExpandedId === p.id}
-          setForceExpandedId={setForceExpandedId}
+          flipped={flippedId === p.id}
+          onToggleFlip={toggleFlip}
         />
       ))}
     </div>
   );
 };
-

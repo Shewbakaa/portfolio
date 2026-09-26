@@ -1,0 +1,93 @@
+/* Hand-drawn button — paths are jittered in SketchButton.js */
+.sketch-btn {
+  --sketch-hatch: var(--yellow);
+  display: block;
+  width: 280px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer !important;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: transform 0.12s;
+}
+
+/* Beat the canvas-wide `.canvas-container:not(.canvas-intro) * { cursor: grab !important }` */
+.canvas-container:not(.canvas-intro) .sketch-btn,
+.canvas-container:not(.canvas-intro) .sketch-btn *,
+.canvas-container.canvas-panning:not(.canvas-intro) .sketch-btn {
+  cursor: pointer !important;
+}
+
+.sketch-btn:active {
+  transform: scale(0.95) rotate(1deg);
+}
+
+.sketch-btn svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  /* The boil swaps hatch lines every 140ms; if a press landed on a line that got
+     replaced before release, the click could be lost. Keep the target on the button. */
+  pointer-events: none;
+}
+
+.sketch-btn:focus {
+  outline: none;
+}
+
+.sketch-btn:focus-visible {
+  outline: 2px dashed var(--black);
+  outline-offset: 4px;
+}
+
+.sketch-btn__outline,
+.sketch-btn__shadow,
+.sketch-btn__arrow {
+  fill: none;
+  stroke: var(--black);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sketch-btn__outline {
+  stroke-width: 3;
+}
+
+.sketch-btn__outline--inner {
+  stroke-width: 1.6;
+  opacity: 0.7;
+}
+
+.sketch-btn__shadow {
+  stroke-width: 2.5;
+  opacity: 0.25;
+}
+
+.sketch-btn__arrow {
+  stroke-width: 2.5;
+}
+
+.sketch-btn__hatch {
+  fill: none;
+  stroke: var(--sketch-hatch);
+  stroke-width: 7;
+  stroke-linecap: round;
+}
+
+.sketch-btn__label {
+  font-family: 'Cabin Sketch', cursive;
+  font-weight: 700;
+  font-size: 42px;
+  fill: var(--black);
+  /* Cabin Sketch tops out at 700 — a matching stroke thickens the chalk letters */
+  stroke: var(--black);
+  stroke-width: 1px;
+  stroke-linejoin: round;
+  paint-order: stroke;
+  pointer-events: none;
+  user-select: none;
+}
