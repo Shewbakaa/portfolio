@@ -1,4 +1,4 @@
-/* Canvas skill cards — cluster + drag; hover/day-night lives in skills.css */
+/* Canvas skill cards: four paper sketches that turn from day to night (hover / tap) */
 
 .skill-cards-cluster {
   position: absolute;
@@ -9,184 +9,522 @@
   pointer-events: none;
 }
 
+/* Positioned by left/top (drag); the intro pops its transform, so tilt lives on .skill-page */
 .skill-cards-cluster .skill-cards-canvas-card {
+  width: 280px;
+  height: 380px;
   pointer-events: auto;
   touch-action: none;
   margin: 0;
 }
 
-/* Title as canvas skill badge (float-badge aesthetic), top-left of card */
-.skill-cards-canvas-card .skill-card-title-badge {
+.skill-cards-cluster--narrow .skill-cards-canvas-card {
+  width: min(280px, calc(100vw - 40px));
+}
+
+.skill-page {
+  --sp-ink: #111;
+  --sp-list: #222;
+  --sp-bullet: #d9a91c;
+  --sp-sun: #f5c842;
+  --sp-chalk: #f4f1e6;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform: rotate(var(--sp-rot, 0deg));
+  transform-origin: 50% 12%;
+  transition: transform 0.2s ease;
+}
+
+.skill-cards-canvas-card:hover .skill-page {
+  transform: rotate(0deg) translate(-2px, -3px);
+}
+
+.skill-page__shadow {
   position: absolute;
-  bottom: 10px;
-  left: 10px;
-  z-index: 20;
-  margin: 0;
-  padding: 6px 14px;
-  max-width: calc(100% - 20px);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  box-sizing: border-box;
-  background: var(--badge-pop-1);
-  border: var(--border);
-  box-shadow: var(--shadow);
-  font-family: 'Space Mono', monospace;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  line-height: 1.2;
-  color: var(--black);
-  transform: rotate(-1.5deg);
-  transform-origin: 0 0;
+  inset: 3px 2px 1%;
+  box-shadow:
+    1px 2px 0 rgba(10, 10, 10, 0.08),
+    3px 8px 16px rgba(10, 10, 10, 0.15);
   pointer-events: none;
-  transition:
-    transform 0.15s ease,
-    box-shadow 0.15s ease;
 }
 
-.skill-cards-canvas-card#card1 .skill-card-title-badge {
-  background: var(--badge-pop-1);
+.skill-page__sheet {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
 }
 
-.skill-cards-canvas-card#card2 .skill-card-title-badge {
-  background: var(--badge-pop-2);
+.skill-page__night {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.5s ease;
 }
 
-.skill-cards-canvas-card#card3 .skill-card-title-badge {
-  background: var(--badge-pop-3);
+.skill-page.is-night .skill-page__night {
+  opacity: 1;
 }
 
-.skill-cards-canvas-card#card4 .skill-card-title-badge {
-  background: var(--badge-pop-4);
-}
-
-.skill-cards-canvas-card:hover .skill-card-title-badge {
-  transform: rotate(0deg) translate(-1px, -1px);
-  box-shadow: 5px 5px 0 var(--black);
-}
-
-/* --- Responsive: canvas cards stay readable on smaller viewports --- */
-
-.skill-cards-cluster--medium .skill-cards-canvas-card.skill-card {
-  width: 260px;
-  height: 360px;
-  margin: 12px;
-}
-
-.skill-cards-cluster--medium .skill-cards-canvas-card .sun {
-  top: 145px;
+/* ── Text ── */
+.skill-page__title {
+  position: absolute;
   left: 22px;
-  transform: rotate(90deg) translateX(-145px) rotate(-90deg);
-}
-
-.skill-cards-cluster--medium .skill-cards-canvas-card .moon {
-  top: 125px;
-  left: 155px;
-  transform: rotate(0deg) translateX(105px) rotate(0deg);
-}
-
-.skill-cards-cluster--medium .skill-cards-canvas-card.skill-card:hover .sun {
-  transform: rotate(0deg) translateX(-105px) rotate(0deg);
-}
-
-.skill-cards-cluster--medium .skill-cards-canvas-card.skill-card:hover .moon {
-  transform: rotate(-90deg) translateX(105px) rotate(90deg);
-}
-
-.skill-cards-cluster--medium .skill-cards-canvas-card .sun img {
-  width: 85px;
-  height: 85px;
-}
-
-.skill-cards-cluster--medium .skill-cards-canvas-card .moon img {
-  width: 64px;
-  height: 64px;
-}
-
-.skill-cards-cluster--medium .skill-cards-canvas-card .content {
-  margin-top: 12%;
-  padding: 14px;
-}
-
-.skill-cards-cluster--medium .skill-cards-canvas-card .content h4 {
-  font-size: 26px;
-}
-
-.skill-cards-cluster--medium .skill-cards-canvas-card .list-group {
-  font-size: 14px;
-}
-
-.skill-cards-cluster--medium .skill-cards-canvas-card .skill-card-title-badge {
-  font-size: 9px;
-  padding: 5px 10px;
-}
-
-.skill-cards-cluster--narrow .skill-cards-canvas-card.skill-card {
-  width: min(300px, calc(100vw - 40px));
-  height: min(360px, 52vh);
-  max-height: 380px;
+  top: 20px;
   margin: 0;
+  z-index: 3;
+  font-family: 'Cabin Sketch', cursive;
+  font-weight: 700;
+  font-size: 28px;
+  line-height: 1.05;
+  color: var(--sp-ink);
+  transition: color 0.5s ease;
 }
 
-.skill-cards-cluster--narrow .skill-cards-canvas-card .sun {
-  top: 130px;
-  left: 18px;
-  transform: rotate(90deg) translateX(-130px) rotate(-90deg);
+.skill-page__list {
+  position: absolute;
+  left: 24px;
+  right: 16px;
+  top: 150px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  z-index: 3;
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  font-size: 21px;
+  line-height: 27px;
+  color: var(--sp-list);
+  transition: color 0.5s ease;
 }
 
-.skill-cards-cluster--narrow .skill-cards-canvas-card .moon {
-  top: 112px;
-  left: 130px;
-  transform: rotate(0deg) translateX(92px) rotate(0deg);
+.skill-page__list li::before {
+  content: '~ ';
+  color: var(--sp-bullet);
 }
 
-.skill-cards-cluster--narrow .skill-cards-canvas-card.skill-card:hover .sun {
-  transform: rotate(0deg) translateX(-92px) rotate(0deg);
+.skill-page.is-night .skill-page__title,
+.skill-page.is-night .skill-page__list {
+  color: var(--sp-chalk);
 }
 
-.skill-cards-cluster--narrow .skill-cards-canvas-card.skill-card:hover .moon {
-  transform: rotate(-90deg) translateX(92px) rotate(90deg);
+.skill-page.is-night .skill-page__list li::before {
+  content: '* ';
+  color: var(--sp-sun);
 }
 
-.skill-cards-cluster--narrow .skill-cards-canvas-card .sun img {
-  width: 72px;
-  height: 72px;
+/* ── Day doodles ── */
+.skill-page__sun,
+.skill-page__moon {
+  position: absolute;
+  right: 18px;
+  top: 56px;
+  width: 74px;
+  height: 74px;
+  z-index: 2;
+  overflow: visible;
+  transition:
+    transform 0.7s cubic-bezier(0.4, 0.1, 0.3, 1),
+    opacity 0.5s ease;
 }
 
-.skill-cards-cluster--narrow .skill-cards-canvas-card .moon img {
-  width: 56px;
-  height: 56px;
+.skill-page__sunRays path {
+  fill: none;
+  stroke: var(--sp-ink);
+  stroke-width: 1.6;
+  stroke-linecap: round;
 }
 
-.skill-cards-cluster--narrow .skill-cards-canvas-card .content {
-  margin-top: 10%;
-  padding: 10px 12px;
+.skill-page__sunRays {
+  transform-origin: 25px 25px;
+  animation: skillSunSpin 14s linear infinite;
 }
 
-.skill-cards-cluster--narrow .skill-cards-canvas-card .content h4 {
-  font-size: 22px;
+.skill-page__sunBody {
+  fill: var(--sp-sun);
+  stroke: var(--sp-ink);
+  stroke-width: 1.6;
 }
 
-.skill-cards-cluster--narrow .skill-cards-canvas-card .list-group {
-  font-size: 13px;
-  letter-spacing: 0.06rem;
+.skill-page__face {
+  fill: none;
+  stroke: var(--sp-ink);
+  stroke-width: 1.3;
+  stroke-linecap: round;
 }
 
-.skill-cards-cluster--narrow .skill-cards-canvas-card .list-group-item {
-  padding: 0.35rem 0;
+.skill-page.is-night .skill-page__sun {
+  transform: translate(-60px, 150px);
+  opacity: 0;
 }
 
-.skill-cards-cluster--narrow .skill-cards-canvas-card .skill-card-title-badge {
+.skill-page__cloud {
+  position: absolute;
+  left: 24px;
+  top: 80px;
+  width: 84px;
+  height: 39px;
+  z-index: 2;
+  animation: skillCloudDrift 9s ease-in-out infinite alternate;
+  transition: opacity 0.5s ease;
+}
+
+.skill-page__cloud path {
+  fill: #fff;
+  stroke: var(--sp-ink);
+  stroke-width: 1.8;
+  stroke-linejoin: round;
+}
+
+.skill-page.is-night .skill-page__cloud {
+  opacity: 0;
+}
+
+/* ── Night doodles ── */
+.skill-page__moon {
+  transform: translate(60px, 150px);
+  opacity: 0;
+}
+
+.skill-page.is-night .skill-page__moon {
+  transform: none;
+  opacity: 1;
+}
+
+.skill-page__moonBody {
+  fill: var(--sp-chalk);
+}
+
+.skill-page__moonFace {
+  fill: none;
+  stroke: #2a3050;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  opacity: 0.75;
+}
+
+.skill-page__z {
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  fill: var(--sp-chalk);
+  animation: skillMoonZ 3s ease-in-out infinite;
+}
+
+.skill-page__z--1 {
   font-size: 9px;
-  padding: 5px 10px;
-  bottom: 8px;
-  left: 8px;
 }
 
-/* Narrow stack spacing matches ~340px step in JSX; shrink if cards are shorter */
-@media (max-width: 640px) and (max-height: 700px) {
-  .skill-cards-cluster--narrow .skill-cards-canvas-card.skill-card {
-    height: min(300px, 48vh);
+.skill-page__z--2 {
+  font-size: 6.5px;
+  animation-delay: 0.6s;
+}
+
+.skill-page__sky {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.6s ease 0.15s;
+  pointer-events: none;
+}
+
+.skill-page.is-night .skill-page__sky {
+  opacity: 1;
+}
+
+.skill-page__sky i {
+  position: absolute;
+  font-style: normal;
+  font-size: 12px;
+  line-height: 1;
+  color: var(--sp-chalk);
+  animation: skillTwinkle var(--tw-dur, 2.4s) ease-in-out infinite var(--tw-delay, 0s);
+}
+
+.skill-page__sky i.is-big {
+  font-size: 18px;
+}
+
+/* Streaks from top-left to bottom-right, then waits out the rest of the loop */
+.skill-page__shootingStar {
+  position: absolute;
+  left: -70px;
+  top: -12px;
+  width: 64px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(to right, rgba(244, 241, 230, 0), var(--sp-chalk));
+  opacity: 0;
+  transform: rotate(34deg);
+  animation: skillShootingStar 4.5s ease-in infinite var(--sp-shoot-delay, 0s);
+}
+
+.skill-page__shootingStar::after {
+  content: '';
+  position: absolute;
+  right: -2px;
+  top: -2px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 5px #fff;
+}
+
+/* Day: night-only animations are paused (and hidden); night: day doodle loops pause */
+.skill-page__sky i,
+.skill-page__shootingStar,
+.skill-page__z {
+  animation-play-state: paused;
+}
+
+.skill-page.is-night .skill-page__sky i,
+.skill-page.is-night .skill-page__shootingStar,
+.skill-page.is-night .skill-page__z {
+  animation-play-state: running;
+}
+
+.skill-page.is-night .skill-page__sunRays,
+.skill-page.is-night .skill-page__cloud {
+  animation-play-state: paused;
+}
+
+@keyframes skillSunSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes skillCloudDrift {
+  to {
+    transform: translateX(34px);
+  }
+}
+
+@keyframes skillTwinkle {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.2;
+    transform: scale(0.6);
+  }
+}
+
+@keyframes skillShootingStar {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) rotate(34deg);
+  }
+  4% {
+    opacity: 1;
+  }
+  24% {
+    opacity: 1;
+  }
+  32%,
+  100% {
+    opacity: 0;
+    transform: translate(430px, 290px) rotate(34deg);
+  }
+}
+
+@keyframes skillMoonZ {
+  0% {
+    opacity: 0;
+    transform: translate(0, 2px);
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(3px, -6px);
+  }
+}
+
+/* ── Papers ── */
+
+/* Languages: watercolor, deckled edges, teal washi tape */
+.skill-page--watercolor .skill-page__sheet {
+  background-color: #fbf6ea;
+  background-image:
+    radial-gradient(ellipse 60% 40% at 70% 22%, rgba(245, 200, 66, 0.35), transparent 70%),
+    radial-gradient(ellipse 70% 45% at 25% 80%, rgba(91, 142, 230, 0.22), transparent 70%);
+  clip-path: polygon(
+    2% 1%, 20% 0, 35% 1.5%, 55% 0.3%, 72% 1.4%, 90% 0, 99% 1.8%, 100% 20%, 98.8% 40%,
+    100% 62%, 99% 82%, 100% 98%, 82% 99.5%, 64% 98.4%, 45% 100%, 28% 98.6%, 10% 99.8%,
+    0 98%, 1.2% 78%, 0 56%, 1.4% 34%, 0 14%
+  );
+}
+
+.skill-page--watercolor .skill-page__night {
+  background:
+    radial-gradient(ellipse 70% 50% at 70% 25%, #3b3f8a, transparent 70%),
+    radial-gradient(ellipse 80% 60% at 25% 80%, #1c3d6e, transparent 70%),
+    #161c3a;
+}
+
+.skill-page__tape {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  width: 84px;
+  height: 26px;
+  margin-left: -42px;
+  background: rgba(59, 206, 172, 0.6);
+  transform: rotate(-5deg);
+  z-index: 4;
+  pointer-events: none;
+}
+
+/* Technologies: engineering paper, perforated top; night = blueprint */
+.skill-page--engineering .skill-page__sheet {
+  background-color: #eef6e8;
+  background-image:
+    linear-gradient(rgba(60, 140, 90, 0.18) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(60, 140, 90, 0.18) 1px, transparent 1px),
+    linear-gradient(rgba(60, 140, 90, 0.35) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(60, 140, 90, 0.35) 1px, transparent 1px);
+  background-size: 10px 10px, 10px 10px, 50px 50px, 50px 50px;
+}
+
+.skill-page--engineering .skill-page__night {
+  background-color: #1d4f8c;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.12) 1px, transparent 1px),
+    linear-gradient(rgba(255, 255, 255, 0.25) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.25) 1px, transparent 1px);
+  background-size: 10px 10px, 10px 10px, 50px 50px, 50px 50px;
+}
+
+.skill-page__perforation {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 10px;
+  z-index: 4;
+  background: radial-gradient(circle at 7px 5px, #fafaf5 3px, transparent 3.3px) 0 0 / 14px 10px;
+}
+
+/* Frameworks: kraft paper, torn top, binder clip */
+.skill-page--kraft {
+  --sp-ink: #2c2010;
+  --sp-list: #2c2010;
+  --sp-bullet: #7a4f14;
+  --sp-sun: #fff4c9;
+}
+
+.skill-page--kraft.is-night {
+  --sp-sun: #f5c842;
+}
+
+.skill-page--kraft .skill-page__sheet {
+  background-color: #cfa874;
+  background-image:
+    radial-gradient(circle at 20% 30%, rgba(90, 60, 30, 0.18) 1px, transparent 1.5px),
+    radial-gradient(circle at 70% 60%, rgba(255, 255, 255, 0.18) 1px, transparent 1.5px),
+    radial-gradient(circle at 40% 80%, rgba(90, 60, 30, 0.15) 1px, transparent 1.5px);
+  background-size: 13px 11px, 17px 15px, 9px 12px;
+  clip-path: polygon(
+    0 2%, 8% 0, 18% 1.6%, 30% 0.3%, 42% 2%, 55% 0.5%, 68% 1.7%, 80% 0.3%, 92% 1.8%,
+    100% 0.6%, 100% 100%, 0 100%
+  );
+}
+
+.skill-page--kraft .skill-page__night {
+  background-color: #3a2a1c;
+  background-image: radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.08) 1px, transparent 1.5px);
+  background-size: 13px 11px;
+}
+
+.skill-page__binderClip {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  width: 60px;
+  height: 22px;
+  margin-left: -30px;
+  background: #222;
+  border-radius: 3px 3px 0 0;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.skill-page__binderClip::before {
+  content: '';
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  top: -16px;
+  height: 18px;
+  border: 3px solid #9a9a9a;
+  border-bottom: none;
+  border-radius: 10px 10px 0 0;
+}
+
+/* Testing Tools: dot-grid journal, dog-eared corner, paperclip; night = chalkboard */
+.skill-page--dotgrid .skill-page__sheet {
+  background-color: #fffdf7;
+  background-image: radial-gradient(circle, rgba(0, 0, 0, 0.28) 1.1px, transparent 1.4px);
+  background-size: 16px 16px;
+  background-position: 8px 8px;
+  clip-path: polygon(0 0, 100% 0, 100% 91%, 89% 100%, 0 100%);
+}
+
+.skill-page--dotgrid .skill-page__night {
+  background-color: #23262b;
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.3) 1.1px, transparent 1.4px);
+  background-size: 16px 16px;
+  background-position: 8px 8px;
+}
+
+.skill-page__dogEar {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 31px;
+  height: 34px;
+  background: linear-gradient(135deg, #e9e4d6 50%, transparent 50%);
+  box-shadow: -1px -1px 2px rgba(10, 10, 10, 0.12);
+  z-index: 4;
+  pointer-events: none;
+}
+
+.skill-page__paperclip {
+  position: absolute;
+  right: 36px;
+  top: -18px;
+  width: 16px;
+  height: 52px;
+  border: 3px solid #8a8f96;
+  border-radius: 9px;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.skill-page__paperclip::after {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 7px;
+  width: 6px;
+  height: 30px;
+  border: 2.5px solid #8a8f96;
+  border-top: none;
+  border-radius: 5px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skill-page__sunRays,
+  .skill-page__cloud,
+  .skill-page__sky i,
+  .skill-page__shootingStar,
+  .skill-page__z {
+    animation: none;
   }
 }
