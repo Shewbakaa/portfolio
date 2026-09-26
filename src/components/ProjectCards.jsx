@@ -7,47 +7,14 @@ import { useIsInView } from '../hooks/useIsInView';
 
 import projectsData from '../assets/json/projects.json';
 
-import constructionData from '../assets/Lottie/CCDP.json';
-import pacman from '../assets/Lottie/pacman.gif';
-import ans from '../assets/Lottie/ANS.json';
-import valentines from '../assets/Lottie/Valentine.json';
-import chatbot from '../assets/Lottie/Chatbot.json';
-import videoGame from '../assets/Lottie/video-game.json';
-import miniProjects from '../assets/Lottie/Mini-projects.json';
-import portfolio from '../assets/Lottie/Portfolio.json';
-import propChain1 from '../assets/Lottie/PropChain-1.json';
-import propChain2 from '../assets/Lottie/PropChain-2.json';
-import cardHeart from '../assets/Lottie/Card-Heart.json';
-import foodservices from '../assets/Lottie/foodservices.json';
-import rsvp from '../assets/Lottie/rsvp.json';
-import secretSanta from '../assets/Lottie/secretSanta.json';
-import umbracoBase from '../assets/Lottie/umbracoBase.json';
-import voting from '../assets/Lottie/Voting.json';
-import mealRoulette from '../assets/Lottie/mealRoulette.json';
+import pacmanWebm from '../assets/Videos/pacman.webm';
+import pacmanHevc from '../assets/Videos/pacman-hevc.mov';
 import { PROJECT_CARD_POSITIONS } from './projectCardPositions';
 
+// Loaded as soon as the canvas mounts; everything else loads when its card gets near.
 const PRIORITY_IDS = [1, 6, 10];
 
-const assetMap = {
-  constructionData,
-  ans,
-  valentines,
-  chatbot,
-  portfolio,
-  miniProjects,
-  videoGame,
-  propChain1,
-  propChain2,
-  pacman,
-  foodservices,
-  umbracoBase,
-  voting,
-  rsvp,
-  secretSanta,
-  cardHeart,
-  mealRoulette,
-};
-
+// Lottie JSON is only ever imported dynamically so each file is its own chunk.
 const LOTTIE_IMPORTERS = {
   CCDP: () => import('../assets/Lottie/CCDP.json'),
   ANS: () => import('../assets/Lottie/ANS.json'),
@@ -67,6 +34,14 @@ const LOTTIE_IMPORTERS = {
   mealRoulette: () => import('../assets/Lottie/mealRoulette.json'),
 };
 
+// Transparent video: HEVC+alpha for Safari, VP9+alpha WebM for everyone else.
+const VIDEO_SOURCES = {
+  pacman: [
+    { src: pacmanHevc, type: 'video/mp4; codecs="hvc1"' },
+    { src: pacmanWebm, type: 'video/webm' },
+  ],
+};
+
 const resolveProjects = (data) =>
   data.map((p) => ({
     ...p,
@@ -77,9 +52,7 @@ const resolveProjects = (data) =>
         : p.type === 'lottie-prop'
           ? p.animationData2 || p.animationData
           : p.animationData,
-    ...(p.animationData && { animationData: assetMap[p.animationData] }),
-    ...(p.animationData2 && { animationData2: assetMap[p.animationData2] }),
-    ...(p.video && { video: assetMap[p.video] }),
+    ...(p.video && { videoSources: VIDEO_SOURCES[p.video] || [] }),
   }));
 
 const toDomId = (s) =>
@@ -185,8 +158,13 @@ const ProjectCard = memo(function ProjectCard({
 
   const [open, setOpen] = useState(false);
 
-  const [loadedAssets, setLoadedAssets] = useState({});
-  const shouldLazyLoad = isNear && !PRIORITY_IDS.includes(p.id);
+  // Latches true the first time the card is near (or immediately for priority
+  // cards) so assets stay loaded + mounted and never restart from frame 0.
+  const [activated, setActivated] = useState(() => PRIORITY_IDS.includes(p.id));
+  const [anims, setAnims] = useState(null);
+  const lottieRef = useRef(null);
+  const lottieRef2 = useRef(null);
+  const videoRef = useRef(null);
 
   useEffect(() => {
     const el = cardRef.current;
@@ -217,33 +195,43 @@ const ProjectCard = memo(function ProjectCard({
   }, []);
 
   useEffect(() => {
-    if (!shouldLazyLoad) return;
-    if (loadedAssets[p.id]) return;
+    if (isNear) setActivated(true);
+  }, [isNear]);
 
-    const imp = LOTTIE_IMPORTERS[p.animationKey];
-    if (!imp) return;
+  // Fetch this card's Lottie chunk(s) once activated
+  useEffect(() => {
+    if (!activated || p.type === 'video') return undefined;
+
+    const load = (key) => {
+      const importer = key && LOTTIE_IMPORTERS[key];
+      return importer ? importer().then((mod) => mod.default) : Promise.resolve(null);
+    };
 
     let cancelled = false;
-    imp().then((mod) => {
-      if (cancelled) return;
-      setLoadedAssets((prev) => ({ ...prev, [p.id]: mod.default }));
-    });
+    Promise.all([load(p.animationKey), load(p.animationKey2)])
+      .then(([primary, secondary]) => {
+        if (!cancelled) setAnims({ primary, secondary });
+      })
+      .catch((err) => console.error(`Failed to load animation for ${p.title}`, err));
     return () => {
       cancelled = true;
     };
-  }, [shouldLazyLoad, loadedAssets, p.id, p.animationKey]);
+  }, [activated, p.type, p.animationKey, p.animationKey2, p.title]);
 
-  const resolvedAnim =
-    PRIORITY_IDS.includes(p.id) || !p.animationKey
-      ? p.animationData
-      : loadedAssets[p.id] || null;
+  // Play only while on screen; pause keeps the current frame so it resumes in place
+  useEffect(() => {
+    [lottieRef.current, lottieRef2.current].forEach((anim) => {
+      if (!anim) return;
+      if (inView) anim.play();
+      else anim.pause();
+    });
 
-  const resolvedAnim2 =
-    p.type === 'lottie-prop'
-      ? PRIORITY_IDS.includes(p.id)
-        ? p.animationData2
-        : p.animationKey2 && loadedAssets[p.id]?.__secondary
-      : null;
+    const video = videoRef.current;
+    if (video) {
+      if (inView) video.play().catch(() => {});
+      else video.pause();
+    }
+  }, [inView, anims, activated]);
 
   return (
     <article
@@ -307,24 +295,37 @@ const ProjectCard = memo(function ProjectCard({
         </header>
 
         <div className="project-card__hero" aria-hidden={false}>
-          {p.type === 'video' ? (
-            <img className="project-card__img" src={p.video} alt={p.title} />
-          ) : isNear && resolvedAnim ? (
+          {p.type === 'video' && activated ? (
+            <video
+              ref={videoRef}
+              className="project-card__img"
+              aria-label={p.title}
+              muted
+              loop
+              playsInline
+              preload="auto"
+            >
+              {p.videoSources.map((s) => (
+                <source key={s.src} src={s.src} type={s.type} />
+              ))}
+            </video>
+          ) : anims?.primary ? (
             p.type === 'lottie-prop' ? (
               <div className="project-card__lottieStack" aria-hidden="true">
-                <Lottie animationData={resolvedAnim} loop autoplay={inView} />
-                {p.animationData2 ? (
+                <Lottie lottieRef={lottieRef} animationData={anims.primary} loop autoplay={false} />
+                {anims.secondary ? (
                   <Lottie
+                    lottieRef={lottieRef2}
                     className="project-card__lottieProp"
-                    animationData={p.animationData2}
+                    animationData={anims.secondary}
                     loop
-                    autoplay={inView}
+                    autoplay={false}
                   />
                 ) : null}
               </div>
             ) : (
               <div className="project-card__lottie" aria-hidden="true">
-                <Lottie animationData={resolvedAnim} loop autoplay={inView} />
+                <Lottie lottieRef={lottieRef} animationData={anims.primary} loop autoplay={false} />
               </div>
             )
           ) : (
