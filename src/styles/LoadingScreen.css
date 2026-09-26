@@ -253,8 +253,13 @@ canvas {
 .sketch-enter__label {
   font-family: 'Cabin Sketch', cursive;
   font-weight: 700;
-  font-size: 40px;
+  font-size: 42px;
   fill: var(--black);
+  /* Cabin Sketch tops out at 700 — a matching stroke thickens the chalk letters */
+  stroke: var(--black);
+  stroke-width: 1px;
+  stroke-linejoin: round;
+  paint-order: stroke;
   pointer-events: none;
   user-select: none;
 }
