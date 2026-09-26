@@ -1,83 +1,212 @@
+/* Timeline as a framed detective corkboard: pinned polaroids joined by red yarn */
+
 .timeline-strip {
-  width: 1120px;
-  height: 210px;
+  width: 1160px;
+  height: 260px;
   color: var(--ink);
 }
 
-.timeline-notes {
+.timeline-board {
   position: relative;
-  width: 1120px;
-  height: 210px;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  border: 14px solid #8b5a2b;
+  border-radius: 6px;
+  background: #8b5a2b;
+  box-shadow:
+    inset 0 0 0 2px #6e4420,
+    2px 5px 0 rgba(10, 10, 10, 0.12),
+    4px 12px 24px rgba(10, 10, 10, 0.2);
 }
 
-.timeline-notes__links {
+/* Wood grain hint on the frame */
+.timeline-board::before {
+  content: '';
+  position: absolute;
+  inset: -14px;
+  border-radius: 6px;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.04) 0 3px,
+    transparent 3px 11px,
+    rgba(0, 0, 0, 0.05) 11px 13px,
+    transparent 13px 23px
+  );
+  pointer-events: none;
+}
+
+.timeline-board__cork {
+  position: absolute;
+  inset: 0;
+  background-color: #c89b6a;
+  background-image:
+    radial-gradient(circle at 30% 40%, rgba(0, 0, 0, 0.12) 1px, transparent 1.6px),
+    radial-gradient(circle at 70% 70%, rgba(255, 255, 255, 0.12) 1px, transparent 1.6px),
+    radial-gradient(circle at 50% 20%, rgba(90, 50, 20, 0.12) 1px, transparent 1.6px);
+  background-size: 7px 6px, 9px 8px, 5px 7px;
+  box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.35);
+}
+
+.timeline-board__yarn {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   overflow: visible;
-  z-index: 1;
+  pointer-events: none;
+  z-index: 4;
 }
 
-.timeline-notes__links path {
+.timeline-board__yarn path {
   fill: none;
-  stroke: rgba(10, 10, 10, 0.35);
-  stroke-width: 2.5px;
-  stroke-dasharray: 6 6;
+  stroke: #c0392b;
+  stroke-width: 2.2;
   stroke-linecap: round;
+  filter: drop-shadow(1px 2px 1px rgba(0, 0, 0, 0.3));
 }
 
-.timeline-note {
+/* Red pushpin (shared by polaroids and the case file) */
+.timeline-pin {
   position: absolute;
-  width: 180px;
-  height: 108px;
-  background: color-mix(in srgb, var(--cream) 88%, var(--tn-accent));
-  border: 3px solid var(--ink);
-  box-shadow: var(--shadow-md);
-  transform: rotate(var(--tn-rot, 0deg));
-  transform-origin: 30% 10%;
+  left: 50%;
+  top: -6px;
+  width: 14px;
+  height: 14px;
+  margin-left: -7px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #ff8a8a, #c0392b 60%);
+  box-shadow: 1px 2px 2px rgba(0, 0, 0, 0.4);
+  z-index: 5;
+}
+
+.timeline-casefile {
+  position: absolute;
+  left: 18px;
+  top: 22px;
+  width: 132px;
+  padding: 12px 10px 10px;
   box-sizing: border-box;
-  padding: 10px 12px 10px;
+  background: #fbf8ee;
+  transform: rotate(-4deg);
+  box-shadow: 1px 3px 5px rgba(0, 0, 0, 0.3);
+  font-family: 'Special Elite', monospace;
+  font-size: 13px;
+  line-height: 17px;
+  color: #333;
   z-index: 2;
+}
+
+.timeline-casefile__head {
+  display: block;
+  margin-bottom: 6px;
+  padding-bottom: 3px;
+  border-bottom: 1.5px solid rgba(192, 57, 43, 0.55);
+  font-size: 15px;
+  letter-spacing: 0.06em;
+  color: #c0392b;
+}
+
+/* Polaroid: positioned + dragged here; hover lift lives here too (not on the pop target) */
+.timeline-note {
+  --tn-photo: #d9a91c;
+  position: absolute;
+  width: 130px;
+  height: 158px;
+  transform: rotate(var(--tn-rot, 0deg));
+  transform-origin: 50% 4px;
+  z-index: 3;
   pointer-events: auto;
   cursor: grab;
   touch-action: none;
+  transition: transform 0.18s ease;
 }
 
-.timeline-note__pop {
-  width: 100%;
-  height: 100%;
-  transform-origin: 50% 20%;
-  will-change: transform;
+.timeline-note:hover,
+.timeline-note.is-dragging {
+  transform: rotate(0deg) translateY(-3px) scale(1.05);
+  z-index: 6;
 }
 
 .timeline-note:active {
   cursor: grabbing;
 }
 
-.timeline-note__band {
-  position: absolute;
-  top: 0;
-  left: 0;
+.timeline-note--work {
+  --tn-photo: #1d9e75;
+}
+
+.timeline-note--project {
+  --tn-photo: #e0555a;
+}
+
+.timeline-note__pop {
+  position: relative;
   width: 100%;
-  height: 20px;
-  background: rgba(0, 0, 0, 0.08);
+  height: 100%;
+  box-sizing: border-box;
+  padding: 8px 8px 0;
+  background: #fff;
+  box-shadow: 1px 3px 6px rgba(0, 0, 0, 0.35);
+  transform-origin: 50% 20%;
+  will-change: transform;
+  transition: box-shadow 0.18s ease;
+}
+
+.timeline-note:hover .timeline-note__pop,
+.timeline-note.is-dragging .timeline-note__pop {
+  box-shadow: 2px 10px 16px rgba(0, 0, 0, 0.35);
+}
+
+.timeline-note__photo {
+  position: relative;
+  height: 92px;
+  display: grid;
+  place-items: center;
+  background: var(--tn-photo);
+  box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.18);
+}
+
+.timeline-note__photo svg {
+  width: 54px;
+  height: 54px;
+}
+
+.timeline-note__photo svg path,
+.timeline-note__photo svg rect {
+  fill: none;
+  stroke: #111;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.timeline-note__photo svg .is-fill {
+  fill: #fff;
+}
+
+.timeline-note__photo svg .is-ink {
+  fill: #111;
+  stroke: none;
 }
 
 .timeline-note__year {
-  position: relative;
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 28px;
-  letter-spacing: 0.06em;
-  line-height: 1;
+  position: absolute;
+  right: 5px;
+  bottom: 4px;
+  padding: 0 4px;
+  background: rgba(0, 0, 0, 0.35);
+  font-family: 'Special Elite', monospace;
+  font-size: 13px;
+  color: #fff;
 }
 
 .timeline-note__label {
-  position: relative;
-  margin-top: 6px;
-  font-family: var(--font-hand);
-  font-size: 18px;
+  margin-top: 8px;
+  font-family: 'Caveat', cursive;
   font-weight: 700;
-  line-height: 1.05;
+  font-size: 19px;
+  line-height: 18px;
+  text-align: center;
+  color: #222;
 }
-

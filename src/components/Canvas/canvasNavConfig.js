@@ -35,7 +35,7 @@ export const MINIMAP_NODES = [
   { id: 'card-easter', left: 800, top: -1100, w: 120, h: 80, color: '#ccc' },
 
   // New canvas elements
-  { id: 'card-timeline', left: -420, top: -840, w: 1120, h: 210, color: '#F5C842' },
+  { id: 'card-timeline', left: -440, top: -1000, w: 1160, h: 260, color: '#8b5a2b' },
   { id: 'card-contacts', left: 980, top: 720, w: 380, h: 240, color: '#3BCEAC' },
   { id: 'now-learning', left: 800, top: -300, w: 320, h: 200, color: '#F5C842' },
   { id: 'now-playing', left: 1100, top: -280, w: 220, h: 300, color: '#FF5E5E' },
