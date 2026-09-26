@@ -145,6 +145,7 @@ export const InfiniteCanvas = ({ children }) => {
       o.y = my - (my - o.y) * (newScale / scale);
       zoomRef.current = newScale;
       setZoomPercentLabel(`${Math.round(newScale * 100)}%`);
+      window.dispatchEvent(new CustomEvent('canvas:zoom', { detail: { zoom: newScale } }));
       clampOffset(o);
       applyTransform();
     },

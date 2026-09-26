@@ -37,7 +37,8 @@ const LOTTIE_IMPORTERS = {
 // Transparent video: HEVC+alpha for Safari, VP9+alpha WebM for everyone else.
 const VIDEO_SOURCES = {
   pacman: [
-    { src: pacmanHevc, type: 'video/mp4; codecs="hvc1"' },
+    // `video/quicktime` makes Chrome skip this (it can decode HEVC but not its alpha)
+    { src: pacmanHevc, type: 'video/quicktime; codecs="hvc1"' },
     { src: pacmanWebm, type: 'video/webm' },
   ],
 };
@@ -103,58 +104,44 @@ const ZOOM_EXPANDED = 0.85;
 // Golden-angle hue stepping spreads colors evenly without collisions.
 const pcHue = (i) => (i * 137.508) % 360;
 
-function useCanvasCameraRefs() {
+const zoomLevelFor = (z) =>
+  z < ZOOM_COMPACT ? 'compact' : z >= ZOOM_EXPANDED ? 'expanded' : 'normal';
+
+// Tracks canvas zoom from InfiniteCanvas's `canvas:zoom` event. `zoomLevel` only
+// changes when a threshold is crossed, so cards re-render only then.
+function useCanvasZoom() {
   const zoomRef = useRef(1);
-  const offsetRef = useRef({ x: 0, y: 0 });
-  const [, bump] = useState(0);
-  const last = useRef({ x: 0, y: 0, z: 1 });
+  const [zoomLevel, setZoomLevel] = useState(() => zoomLevelFor(1));
 
   useEffect(() => {
-    let raf = 0;
-    const tick = () => {
-      const world = document.querySelector('.canvas-world');
-      if (world) {
-        const tr = world.style.transform || '';
-        // translate(px, px) scale(z)
-        const m = tr.match(/translate\(([-0-9.]+)px,\s*([-0-9.]+)px\)\s*scale\(([-0-9.]+)\)/);
-        if (m) {
-          const x = parseFloat(m[1]) || 0;
-          const y = parseFloat(m[2]) || 0;
-          const z = parseFloat(m[3]) || 1;
-          const changed = x !== last.current.x || y !== last.current.y || z !== last.current.z;
-          if (changed) {
-            last.current = { x, y, z };
-            offsetRef.current = { x, y };
-            zoomRef.current = z;
-            bump((n) => (n + 1) % 1000000);
-          }
-        }
-      }
-      raf = window.requestAnimationFrame(tick);
+    const onZoom = (e) => {
+      const z = e.detail?.zoom;
+      if (typeof z !== 'number') return;
+      zoomRef.current = z;
+      setZoomLevel(zoomLevelFor(z));
     };
-    raf = window.requestAnimationFrame(tick);
-    return () => window.cancelAnimationFrame(raf);
+    window.addEventListener('canvas:zoom', onZoom);
+    return () => window.removeEventListener('canvas:zoom', onZoom);
   }, []);
 
-  return { zoomRef, offsetRef };
+  return { zoomRef, zoomLevel };
 }
 
 const ProjectCard = memo(function ProjectCard({
   p,
   i,
   zoomRef,
-  offsetRef,
+  zoomLevel,
   forceExpanded,
   setForceExpandedId,
 }) {
   const cardRef = useRef(null);
   const draggableRef = useRef(null);
   const { left, top, rotate } = getCardPos(p, i);
-  const { inView, isNear } = useIsInView(cardRef, offsetRef, zoomRef);
-  const zoom = zoomRef.current || 1;
+  const { inView, isNear } = useIsInView(cardRef);
 
-  const compact = zoom < ZOOM_COMPACT && !forceExpanded;
-  const expanded = zoom >= ZOOM_EXPANDED || forceExpanded;
+  const compact = zoomLevel === 'compact' && !forceExpanded;
+  const expanded = zoomLevel === 'expanded' || forceExpanded;
 
   const [open, setOpen] = useState(false);
 
@@ -276,7 +263,7 @@ const ProjectCard = memo(function ProjectCard({
         type="button"
         className="project-card__hit"
         onClick={() => {
-          if (zoom < ZOOM_EXPANDED) {
+          if (zoomRef.current < ZOOM_EXPANDED) {
             setForceExpandedId(p.id);
             setOpen(true);
             return;
@@ -372,7 +359,7 @@ const ProjectCard = memo(function ProjectCard({
 });
 
 export const ProjectCards = () => {
-  const { zoomRef, offsetRef } = useCanvasCameraRefs();
+  const { zoomRef, zoomLevel } = useCanvasZoom();
   const [forceExpandedId, setForceExpandedId] = useState(null);
   const rootRef = useRef(null);
 
@@ -400,7 +387,7 @@ export const ProjectCards = () => {
           p={p}
           i={i}
           zoomRef={zoomRef}
-          offsetRef={offsetRef}
+          zoomLevel={zoomLevel}
           forceExpanded={forceExpandedId === p.id}
           setForceExpandedId={setForceExpandedId}
         />

@@ -1,110 +1,51 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
-const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
-
-const rectIntersects = (a, b) =>
-  a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
-
-const expandRect = (r, m) => ({
-  left: r.left - m,
-  top: r.top - m,
-  right: r.right + m,
-  bottom: r.bottom + m,
-});
+const IN_VIEW_MARGIN = '100px';
+const NEAR_MARGIN = '600px';
 
 /**
- * Returns { inView, isNear } for a canvas element.
- * - Primary: IntersectionObserver (root viewport)
- * - Fallback: manual rect overlap check
- * Re-evaluates on rAF when offset/zoom changes (max once per frame).
+ * Returns { inView, isNear } for a canvas element, via IntersectionObserver.
+ * IO accounts for the canvas pan/zoom transforms, so no per-frame polling is needed.
+ * - inView: within 100px of the viewport
+ * - isNear: within 600px (used to start loading assets early)
  */
-export function useIsInView(elementRef, offsetRef, zoomRef) {
+export function useIsInView(elementRef) {
   const [state, setState] = useState({ inView: false, isNear: false });
-  const last = useRef({ ox: 0, oy: 0, z: 1 });
-  const rafRef = useRef(0);
-
-  const supportsIO = useMemo(
-    () => typeof window !== 'undefined' && typeof window.IntersectionObserver === 'function',
-    []
-  );
 
   useEffect(() => {
     const el = elementRef?.current;
     if (!el) return undefined;
 
-    let ioIn = null;
-    let ioNear = null;
-    let cancelled = false;
-
-    if (supportsIO) {
-      ioIn = new IntersectionObserver(
-        (entries) => {
-          if (cancelled) return;
-          const e = entries[0];
-          setState((prev) => ({ ...prev, inView: Boolean(e?.isIntersecting) }));
-        },
-        { root: null, rootMargin: '100px', threshold: 0 }
-      );
-
-      ioNear = new IntersectionObserver(
-        (entries) => {
-          if (cancelled) return;
-          const e = entries[0];
-          setState((prev) => ({ ...prev, isNear: Boolean(e?.isIntersecting) }));
-        },
-        { root: null, rootMargin: '600px', threshold: 0 }
-      );
-
-      ioIn.observe(el);
-      ioNear.observe(el);
+    // No IO support: treat everything as visible so animations still load and play
+    if (typeof window.IntersectionObserver !== 'function') {
+      setState({ inView: true, isNear: true });
+      return undefined;
     }
 
-    const manualCheck = () => {
-      const node = elementRef?.current;
-      if (!node) return;
+    // Observe against the canvas viewport itself: with root=null, its overflow:hidden
+    // would clip cards before rootMargin applies, so "near" would never fire early.
+    const root = el.closest('.canvas-container');
 
-      const r = node.getBoundingClientRect();
-      const vp = { left: 0, top: 0, right: window.innerWidth, bottom: window.innerHeight };
-
-      const inRect = expandRect(vp, 100);
-      const nearRect = expandRect(vp, 600);
-      const rr = { left: r.left, top: r.top, right: r.right, bottom: r.bottom };
-
-      const inView = rectIntersects(rr, inRect);
-      const isNear = rectIntersects(rr, nearRect);
-
-      setState((prev) => {
-        if (prev.inView === inView && prev.isNear === isNear) return prev;
-        return { inView, isNear };
-      });
+    const observe = (rootMargin, key) => {
+      const io = new IntersectionObserver(
+        ([entry]) => {
+          const value = Boolean(entry?.isIntersecting);
+          setState((prev) => (prev[key] === value ? prev : { ...prev, [key]: value }));
+        },
+        { root, rootMargin, threshold: 0 }
+      );
+      io.observe(el);
+      return io;
     };
 
-    const tick = () => {
-      const o = offsetRef?.current || { x: 0, y: 0 };
-      const zRaw = zoomRef?.current;
-      const z = typeof zRaw === 'number' ? clamp(zRaw, 0.01, 10) : 1;
-
-      const changed =
-        o.x !== last.current.ox || o.y !== last.current.oy || z !== last.current.z;
-
-      if (changed || !supportsIO) {
-        last.current = { ox: o.x, oy: o.y, z };
-        manualCheck();
-      }
-
-      rafRef.current = window.requestAnimationFrame(tick);
-    };
-
-    rafRef.current = window.requestAnimationFrame(tick);
+    const ioIn = observe(IN_VIEW_MARGIN, 'inView');
+    const ioNear = observe(NEAR_MARGIN, 'isNear');
 
     return () => {
-      cancelled = true;
-      if (rafRef.current) window.cancelAnimationFrame(rafRef.current);
-      ioIn?.disconnect();
-      ioNear?.disconnect();
+      ioIn.disconnect();
+      ioNear.disconnect();
     };
-  }, [elementRef, offsetRef, zoomRef, supportsIO]);
+  }, [elementRef]);
 
   return state;
 }
-
