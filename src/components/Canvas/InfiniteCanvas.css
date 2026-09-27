@@ -68,15 +68,6 @@
   pointer-events: none;
 }
 
-/* Nav / minimap card anchors — layout from canvasNavConfig (sizes nominal) */
-.canvas-card-marker {
-  position: absolute;
-  margin-left: 0;
-  margin-top: 0;
-  visibility: hidden;
-  pointer-events: none;
-  box-sizing: border-box;
-}
 
 /* Override App.css global `* { cursor: none !important }` for pan UX (not during intro) */
 .canvas-container:not(.canvas-intro),

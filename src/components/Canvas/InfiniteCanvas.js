@@ -25,11 +25,7 @@ import { CookingCard } from '../CookingCard';
 import bb8Exit from '../../assets/Audios/bb8-exit.mp3';
 import '../../styles/LoadingScreen.css';
 import './InfiniteCanvas.css';
-import {
-  NODE_POSITIONS,
-  MINIMAP_NODES,
-  MINIMAP_DOM_SKIP,
-} from './canvasNavConfig';
+import { NODE_POSITIONS } from './canvasNavConfig';
 
 const CANVAS_PAN_BOUNDS = 8000;
 
@@ -96,18 +92,22 @@ export const InfiniteCanvas = ({ children }) => {
   const panTo = useCallback((key) => {
     const entry = NODE_POSITIONS[key];
     if (!entry) return;
-    const target = entry.card;
-    const el =
-      typeof target === 'string' && (target.startsWith('.') || target.startsWith('#'))
-        ? document.querySelector(target)
-        : document.getElementById(target);
-    if (!el) return;
+    // Centre on the combined bounds of everything the selector matches
+    const els = [...document.querySelectorAll(entry.card)].filter((el) => {
+      const r = el.getBoundingClientRect();
+      return r.width > 0 && r.height > 0;
+    });
+    if (!els.length) return;
+    const rects = els.map((el) => el.getBoundingClientRect());
+    const left = Math.min(...rects.map((r) => r.left));
+    const top = Math.min(...rects.map((r) => r.top));
+    const right = Math.max(...rects.map((r) => r.right));
+    const bottom = Math.max(...rects.map((r) => r.bottom));
 
     const w = window.innerWidth;
     const h = window.innerHeight;
-    const r = el.getBoundingClientRect();
-    const ddx = w / 2 - (r.left + r.width / 2);
-    const ddy = h / 2 - (r.top + r.height / 2);
+    const ddx = w / 2 - (left + right) / 2;
+    const ddy = h / 2 - (top + bottom) / 2;
 
     const o = offset.current;
     const targetX = clamp(
@@ -673,24 +673,6 @@ export const InfiniteCanvas = ({ children }) => {
               }
             />
           ) : null}
-          {introComplete
-            ? MINIMAP_NODES.filter((n) => !MINIMAP_DOM_SKIP.has(n.id)).map(
-                (n) => (
-                  <div
-                    key={n.id}
-                    id={n.id}
-                    className="canvas-card-marker"
-                    style={{
-                      left: n.left,
-                      top: n.top,
-                      width: n.w,
-                      height: n.h,
-                    }}
-                    aria-hidden
-                  />
-                )
-              )
-            : null}
           {introComplete ? <FloatingSkillBadges /> : null}
           {introComplete ? <ProjectCards /> : null}
           {introComplete ? <SkillCards /> : null}
