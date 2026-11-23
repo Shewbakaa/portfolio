@@ -2,31 +2,38 @@
  * Manual layout for `ProjectCards` on the infinite canvas.
  * Units are in "world px" (same coordinate space as badges/cards).
  *
- * Keys should match the `projects.json` lottie/video asset keys:
+ * Featured cards are keyed by their `projects.json` asset key:
  * - lottie: `animationData`
  * - lottie-prop: `animationData2` (if present) else `animationData`
  * - video: `video`
+ * - image: `image`
+ *
+ * Cards with a `stack` field skip this map and live in a pile (see PROJECT_STACKS).
  */
 
 export const PROJECT_CARD_POSITIONS = {
-  // Near-center cluster (tweak freely)
-  pacman: { left: 1520, top: 10, rotate: 1.2 },
-  secretSanta: { left: 1130, top: -460, rotate: -1.4 },
-  ans: { left: 1200, top: 480, rotate: 1.6 },
-  cardHeart: { left: 740, top: -540, rotate: -1.2 },
-  valentines: { left: 650, top: -1020, rotate: 1.1 },
-  portfolio: { left: 1960, top: 220, rotate: -1.6 },
-  miniProjects: { left: 1040, top: -940, rotate: 1.3 },
-  videoGame: { left: 1620, top: 510, rotate: -1.1 },
+  // Row 1
+  workoutBuddy: { left: 740, top: -560, rotate: 1.2 },
+  localfixr: { left: 1100, top: -510, rotate: -1.4 },
+  bookRoulette: { left: 1460, top: -580, rotate: 1.1 },
+  mealRoulette: { left: 1820, top: -520, rotate: -1.3 },
 
-  // lottie-prop projects
-  propChain2: { left: 1460, top: -410, rotate: 1.0 },
-  chatbot: { left: 2350, top: 0, rotate: -1.2 },
-  mealRoulette: { left: 660, top: 120, rotate: 1.5 },
-  constructionData: { left: 1960, top: -800, rotate: -1.5 },
-  foodservices: { left: 1040, top: 0, rotate: 1.2 },
-  umbracoBase: { left: 1920, top: -260, rotate: 1.0 },
-  voting: { left: 1540, top: -880, rotate: -1.0 },
-  rsvp: { left: 780, top: 520, rotate: 1.3 },
+  // Row 2
+  foodservices: { left: 900, top: -30, rotate: 1.0 },
+  pictureTrain: { left: 1260, top: 10, rotate: -1.2 },
+  pacman: { left: 1620, top: -40, rotate: 1.4 },
 };
 
+/**
+ * Piles east of the featured cards. Each pile fans out to the right in a single
+ * row, so piles stacked vertically never collide when opened.
+ * `left`/`top` is the top card's spot; the label sits underneath.
+ */
+export const PROJECT_STACKS = {
+  friends: { label: 'made for friends', left: 2240, top: -640, rotate: -1.6 },
+  experiments: { label: 'experiments', left: 2240, top: -140, rotate: 1.4 },
+  early: { label: 'the early days', left: 2240, top: 360, rotate: -1.2 },
+};
+
+// Gap between fanned-out cards (card is 280px wide)
+export const STACK_FAN_STEP = 310;

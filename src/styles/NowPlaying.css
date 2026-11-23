@@ -140,6 +140,38 @@
   font-size: 16px;
 }
 
+.cart__progress {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+  flex: 1;
+  margin-right: 12px;
+}
+
+.cart__progressPct {
+  font-family: var(--font-hand);
+  font-weight: 800;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.cart__progressBar {
+  display: block;
+  height: 10px;
+  max-width: 110px;
+  border: 2px solid var(--ink);
+  background: rgba(255, 255, 255, 0.6);
+  box-sizing: border-box;
+}
+
+.cart__progressFill {
+  display: block;
+  height: 100%;
+  min-width: 4px;
+  background: var(--ink);
+}
+
 .cart__status {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 16px;

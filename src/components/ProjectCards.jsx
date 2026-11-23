@@ -11,10 +11,27 @@ import projectsData from '../assets/json/projects.json';
 
 import pacmanWebm from '../assets/Videos/pacman.webm';
 import pacmanHevc from '../assets/Videos/pacman-hevc.mov';
-import { PROJECT_CARD_POSITIONS } from './projectCardPositions';
+import { PROJECT_CARD_POSITIONS, PROJECT_STACKS, STACK_FAN_STEP } from './projectCardPositions';
+
+import bookRouletteImg from '../assets/Images/projects/bookRoulette.webp';
+import workoutBuddyImg from '../assets/Images/projects/workoutBuddy.webp';
+import localfixrImg from '../assets/Images/projects/localfixr.webp';
+import postcardMemoriesImg from '../assets/Images/projects/postcardMemories.webp';
+import pictureTrainImg from '../assets/Images/projects/pictureTrain.webp';
+import trafficSimul8rImg from '../assets/Images/projects/trafficSimul8r.webp';
+
+// Screenshot heroes for projects without a Lottie animation (`type: "image"`)
+const PROJECT_IMAGES = {
+  bookRoulette: bookRouletteImg,
+  workoutBuddy: workoutBuddyImg,
+  localfixr: localfixrImg,
+  postcardMemories: postcardMemoriesImg,
+  pictureTrain: pictureTrainImg,
+  trafficSimul8r: trafficSimul8rImg,
+};
 
 // Loaded as soon as the canvas mounts; everything else loads when its card gets near.
-const PRIORITY_IDS = [1, 6, 10];
+const PRIORITY_IDS = [1, 18, 21];
 
 // Lottie JSON is only ever imported dynamically so each file is its own chunk.
 const LOTTIE_IMPORTERS = {
@@ -22,7 +39,6 @@ const LOTTIE_IMPORTERS = {
   ANS: () => import('../assets/Lottie/ANS.json'),
   Valentine: () => import('../assets/Lottie/Valentine.json'),
   Chatbot: () => import('../assets/Lottie/Chatbot.json'),
-  Portfolio: () => import('../assets/Lottie/Portfolio.json'),
   'Mini-projects': () => import('../assets/Lottie/Mini-projects.json'),
   'video-game': () => import('../assets/Lottie/video-game.json'),
   'PropChain-1': () => import('../assets/Lottie/PropChain-1.json'),
@@ -52,7 +68,9 @@ const resolveProjects = (data) =>
     __assetKey:
       p.type === 'video'
         ? p.video
-        : p.type === 'lottie-prop'
+        : p.type === 'image'
+          ? p.image
+          : p.type === 'lottie-prop'
           ? p.animationData2 || p.animationData
           : p.animationData,
     ...(p.video && { videoSources: VIDEO_SOURCES[p.video] || [] }),
@@ -112,12 +130,37 @@ const useCardSketch = (id) =>
     };
   }, [id]);
 
-const ProjectCard = memo(function ProjectCard({ p, i, flipped, onToggleFlip }) {
+// Where a stacked card sits: piled (top card first, the next two peeking out) or fanned in a row
+const getStackPos = (pile, depth, fanned) => {
+  if (fanned) {
+    return {
+      left: pile.left + depth * STACK_FAN_STEP,
+      top: pile.top + (depth % 2 ? 18 : -6),
+      rotate: depth % 2 ? 1.3 : -1.1,
+    };
+  }
+  const layer = Math.min(depth, 2);
+  return {
+    left: pile.left + layer * 10,
+    top: pile.top - layer * 12,
+    rotate: pile.rotate + (layer === 0 ? 0 : layer === 1 ? 3.2 : -2.6),
+  };
+};
+
+/**
+ * `pile` is null for featured cards. For stacked cards it is
+ * { label, depth, size, fanned, onOpen } and the card turns into a pile page
+ * (no drag, no flip, click opens the pile) until the pile is fanned out.
+ */
+const ProjectCard = memo(function ProjectCard({ p, pos, pile, flipped, onToggleFlip }) {
   const cardRef = useRef(null);
   const draggableRef = useRef(null);
   const toggleRef = useRef(onToggleFlip);
   toggleRef.current = onToggleFlip;
-  const { left, top, rotate } = getCardPos(p, i);
+  const { left, top, rotate } = pos;
+  const piled = Boolean(pile && !pile.fanned);
+  const pileRef = useRef(pile);
+  pileRef.current = pile;
   const { inView, isNear } = useIsInView(cardRef);
   const sketch = useCardSketch(p.id);
 
@@ -163,13 +206,25 @@ const ProjectCard = memo(function ProjectCard({ p, i, flipped, onToggleFlip }) {
       draggableRef.current = null;
     };
   }, [p.id]);
+
+  // Piled pages can't be dragged; folding a pile pulls dragged pages back onto it
+  useEffect(() => {
+    const d = draggableRef.current;
+    if (!d) return;
+    if (piled) {
+      d.disable();
+      gsap.to(cardRef.current, { x: 0, y: 0, duration: 0.45, ease: 'power3.out' });
+    } else {
+      d.enable();
+    }
+  }, [piled]);
   useEffect(() => {
     if (isNear) setActivated(true);
   }, [isNear]);
 
   // Fetch this card's Lottie chunk(s) once activated
   useEffect(() => {
-    if (!activated || p.type === 'video') return undefined;
+    if (!activated || p.type === 'video' || p.type === 'image') return undefined;
 
     const load = (key) => {
       const importer = key && LOTTIE_IMPORTERS[key];
@@ -205,7 +260,15 @@ const ProjectCard = memo(function ProjectCard({ p, i, flipped, onToggleFlip }) {
   }, [inView, flipped, anims, activated]);
 
   const hero =
-    p.type === 'video' && activated ? (
+    p.type === 'image' && activated && PROJECT_IMAGES[p.image] ? (
+      <img
+        className="project-card__img project-card__img--shot"
+        src={PROJECT_IMAGES[p.image]}
+        alt={`${p.title} screenshot`}
+        draggable={false}
+        decoding="async"
+      />
+    ) : p.type === 'video' && activated ? (
       <video
         ref={videoRef}
         className="project-card__img"
@@ -244,15 +307,38 @@ const ProjectCard = memo(function ProjectCard({ p, i, flipped, onToggleFlip }) {
       </div>
     );
 
+  const classes = [
+    'project-card',
+    flipped && 'project-card--flipped',
+    pile && 'project-card--stacked',
+    piled && 'project-card--piled',
+    piled && pile.depth === 0 && 'project-card--pileTop',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
   return (
     <article
       ref={cardRef}
       id={`project-card-${toDomId(p.__assetKey) || p.id}`}
-      className={`project-card${flipped ? ' project-card--flipped' : ''}`}
-      style={{ left, top, ['--pc-rot']: `${rotate}deg` }}
+      className={classes}
+      style={{
+        left,
+        top,
+        ['--pc-rot']: `${rotate}deg`,
+        ...(pile && { zIndex: pile.fanned ? 1 : pile.size - pile.depth }),
+      }}
+      aria-hidden={piled && pile.depth > 0 ? true : undefined}
       onMouseDown={(e) => e.stopPropagation()}
       onPointerDown={(e) => e.stopPropagation()}
       onTouchStart={(e) => e.stopPropagation()}
+      onClickCapture={(e) => {
+        // A piled page opens its pile instead of flipping or following links
+        if (!pileRef.current || pileRef.current.fanned) return;
+        e.preventDefault();
+        e.stopPropagation();
+        pileRef.current.onOpen();
+      }}
     >
       {/* Intro pop target: no CSS transform here, so GSAP's leftover inline transform is harmless */}
       <div className="project-card__pop">
@@ -290,13 +376,16 @@ const ProjectCard = memo(function ProjectCard({ p, i, flipped, onToggleFlip }) {
                 <h3 className="project-card__backTitle">{p.title}</h3>
                 <p className="project-card__desc">{p.Desc}</p>
                 <div className="project-card__links">
-                  <SketchButton
-                    className="project-card__link"
-                    label="GitHub"
-                    href={p.link}
-                    seed={p.id * 31 + 1}
-                    ariaLabel={`${p.title} on GitHub`}
-                  />
+                  {/* Private repos have no `link`; unhosted ones have no `demo` */}
+                  {p.link ? (
+                    <SketchButton
+                      className="project-card__link"
+                      label="GitHub"
+                      href={p.link}
+                      seed={p.id * 31 + 1}
+                      ariaLabel={`${p.title} on GitHub`}
+                    />
+                  ) : null}
                   {p.demo ? (
                     <SketchButton
                       className="project-card__link"
@@ -307,6 +396,9 @@ const ProjectCard = memo(function ProjectCard({ p, i, flipped, onToggleFlip }) {
                       ariaLabel={`${p.title} live demo`}
                     />
                   ) : null}
+                  {!p.link && !p.demo && p.privateNote ? (
+                    <span className="project-card__privateNote">{p.privateNote}</span>
+                  ) : null}
                 </div>
                 <span className="project-card__hint project-card__hint--back" aria-hidden="true">flip back ↺</span>
               </div>
@@ -315,22 +407,76 @@ const ProjectCard = memo(function ProjectCard({ p, i, flipped, onToggleFlip }) {
         </div>
       </div>
 
-      {/* Keyboard access to the flip (mouse users click the page itself) */}
-      <button type="button" className="sr-only" onClick={() => onToggleFlip(p.id)} aria-pressed={flipped}>
-        {flipped ? `Show ${p.title} sketch` : `Show ${p.title} details`}
-      </button>
+      {/* Keyboard access to the flip (mouse users click the page itself); piles use their label */}
+      {piled ? null : (
+        <button type="button" className="sr-only" onClick={() => onToggleFlip(p.id)} aria-pressed={flipped}>
+          {flipped ? `Show ${p.title} sketch` : `Show ${p.title} details`}
+        </button>
+      )}
     </article>
   );
 });
 
+// Paper label under a pile: names it, counts it, and spreads/folds it
+const StackTag = ({ id, stack, count, open, onToggle }) => {
+  const wobble = useMemo(() => makeWobble(seededRandom(id.length * 977 + count)), [id, count]);
+  const box = useMemo(() => sketchBox(3, 3, 254, 50, 4, wobble), [wobble]);
+  return (
+    <button
+      type="button"
+      className={`project-stack-tag${open ? ' is-open' : ''}`}
+      style={{ left: stack.left + 10, top: stack.top + 404, ['--tag-rot']: `${-stack.rotate * 0.6}deg` }}
+      onClick={onToggle}
+      onPointerDown={(e) => e.stopPropagation()}
+      onMouseDown={(e) => e.stopPropagation()}
+      aria-expanded={open}
+      aria-label={`${open ? 'Fold' : 'Spread out'} ${stack.label}: ${count} projects`}
+    >
+      <svg className="project-stack-tag__frame" viewBox="0 0 260 56" preserveAspectRatio="none" aria-hidden="true">
+        <path d={box} />
+      </svg>
+      <span className="project-stack-tag__label">
+        {stack.label} <span className="project-stack-tag__count">· {count}</span>
+      </span>
+      <span className="project-stack-tag__action" aria-hidden="true">
+        {open ? 'fold ↩' : 'spread →'}
+      </span>
+    </button>
+  );
+};
+
 export const ProjectCards = () => {
   const [flippedId, setFlippedId] = useState(null);
+  const [openStack, setOpenStack] = useState(null);
   const rootRef = useRef(null);
 
   const projects = useMemo(() => {
     const resolved = resolveProjects(projectsData);
     return [...resolved].sort((a, b) => parseDate(b.createdDate) - parseDate(a.createdDate));
   }, []);
+
+  // Newest project sits on top of each pile
+  const stackMembers = useMemo(() => {
+    const groups = {};
+    projects.forEach((p) => {
+      if (p.stack && PROJECT_STACKS[p.stack]) (groups[p.stack] = groups[p.stack] || []).push(p.id);
+    });
+    return groups;
+  }, [projects]);
+
+  const toggleStack = useCallback(
+    (key) => {
+      setOpenStack((prev) => (prev === key ? null : key));
+      // Don't leave a page flipped inside a pile that's folding
+      setFlippedId((prev) => (prev && projects.find((p) => p.id === prev)?.stack ? null : prev));
+    },
+    [projects]
+  );
+
+  const openers = useMemo(
+    () => Object.fromEntries(Object.keys(PROJECT_STACKS).map((k) => [k, () => toggleStack(k)])),
+    [toggleStack]
+  );
 
   // One page flipped at a time; clicking a flipped page turns it back
   const toggleFlip = useCallback((id) => {
@@ -351,15 +497,46 @@ export const ProjectCards = () => {
 
   return (
     <div ref={rootRef} className="project-cards-root" aria-label="Project cards">
-      {projects.map((p, i) => (
-        <ProjectCard
-          key={p.id}
-          p={p}
-          i={i}
-          flipped={flippedId === p.id}
-          onToggleFlip={toggleFlip}
-        />
-      ))}
+      {projects.map((p, i) => {
+        const stack = p.stack && PROJECT_STACKS[p.stack];
+        if (!stack) {
+          return (
+            <ProjectCard
+              key={p.id}
+              p={p}
+              pos={getCardPos(p, i)}
+              pile={null}
+              flipped={flippedId === p.id}
+              onToggleFlip={toggleFlip}
+            />
+          );
+        }
+        const members = stackMembers[p.stack];
+        const depth = members.indexOf(p.id);
+        const fanned = openStack === p.stack;
+        return (
+          <ProjectCard
+            key={p.id}
+            p={p}
+            pos={getStackPos(stack, depth, fanned)}
+            pile={{ depth, size: members.length, fanned, onOpen: openers[p.stack] }}
+            flipped={fanned && flippedId === p.id}
+            onToggleFlip={toggleFlip}
+          />
+        );
+      })}
+      {Object.entries(PROJECT_STACKS).map(([key, stack]) =>
+        stackMembers[key] ? (
+          <StackTag
+            key={key}
+            id={key}
+            stack={stack}
+            count={stackMembers[key].length}
+            open={openStack === key}
+            onToggle={openers[key]}
+          />
+        ) : null
+      )}
     </div>
   );
 };

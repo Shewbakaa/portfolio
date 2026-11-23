@@ -20,25 +20,6 @@ export const COOKING_PROJECTS = [
     eta: 'under app store review™',
     chefNote: 'first time with React Native, wish me luck',
   },
-  {
-    id: 'cooking-card-traffic',
-    basePos: { left: 100, top: -780 },
-    platform: 'WEB · SIMULATION',
-    platformColor: '#F5C842',
-    title: 'Traffic Simul8r',
-    subtitle: 'Multi-intersection traffic simulator',
-    url: 'https://multi-intersection-traffic-simul8r.vercel.app/',
-    stack: [
-      { label: 'React', hot: true },
-      { label: 'Canvas', hot: true },
-      { label: 'TypeScript', hot: false },
-      { label: 'Vercel', hot: false },
-    ],
-    progress: 90,
-    startedDate: 'May 2026',
-    eta: 'live — still tuning signals',
-    chefNote: 'crank density to High and watch the queue times spiral',
-  },
 ];
 
 /** @deprecated Use COOKING_PROJECTS */

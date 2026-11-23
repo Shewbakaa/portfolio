@@ -3,10 +3,10 @@ import '../styles/NowPlaying.css';
 
 const NOW_PLAYING = {
   label: 'NOW PLAYING',
-  title: 'Crimson Desert',
+  title: 'GTA 6',
   platform: 'PS5',
-  genre: 'Action RPG',
-  hoursLogged: '5+ hrs',
+  genre: 'Action-Adventure',
+  progress: 8,
   status: 'In Progress',
 };
 
@@ -96,7 +96,19 @@ export const NowPlaying = () => {
         </div>
 
         <div className="cart__bottom">
-          <div className="cart__hours">{NOW_PLAYING.hoursLogged}</div>
+          <div
+            className="cart__progress"
+            role="progressbar"
+            aria-label="Game progress"
+            aria-valuenow={NOW_PLAYING.progress}
+            aria-valuemin={0}
+            aria-valuemax={100}
+          >
+            <span className="cart__progressPct">{NOW_PLAYING.progress}%</span>
+            <span className="cart__progressBar" aria-hidden="true">
+              <span className="cart__progressFill" style={{ width: `${NOW_PLAYING.progress}%` }} />
+            </span>
+          </div>
           <div className="cart__status">{NOW_PLAYING.status}</div>
         </div>
       </div>

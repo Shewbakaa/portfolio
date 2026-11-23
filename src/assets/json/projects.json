@@ -7,7 +7,7 @@
     "type": "video",
     "animationKey": "pacman",
     "video": "pacman",
-    "link": "https://github.com/shivba28/PacMan3D",
+    "link": "https://github.com/Shewbakaa/PacMan3D",
     "Desc": "A 3D twist on the classic Pacman game, this project features enhanced graphics and interactive elements, offering players an immersive experience with challenging mazes and power-ups."
   },
   {
@@ -15,10 +15,11 @@
     "title": "CCDP",
     "note": "built for hard hats",
     "createdDate": "2022-05-21",
+    "stack": "early",
     "type": "lottie",
     "animationKey": "CCDP",
     "animationData": "constructionData",
-    "link": "https://github.com/shivba28/CCDP",
+    "link": "https://github.com/Shewbakaa/CCDP",
     "Desc": "A robust construction project management tool designed to streamline documentation, progress tracking, and collaborative workflows, facilitating efficient project oversight from inception to completion."
   },
   {
@@ -26,10 +27,11 @@
     "title": "Adopt Not Shop",
     "note": "adopt, don't shop",
     "createdDate": "2024-02-17",
+    "stack": "early",
     "type": "lottie",
     "animationKey": "ANS",
     "animationData": "ans",
-    "link": "https://github.com/shivba28/ANS",
+    "link": "https://github.com/Shewbakaa/ANS",
     "Desc": "An application promoting animal adoption by providing resources and profiles of pets, helping users find adoptable pets and raise awareness about shelter animals."
   },
   {
@@ -37,11 +39,12 @@
     "title": "Valentine's Game",
     "note": "be mine?",
     "createdDate": "2024-02-21",
+    "stack": "friends",
     "type": "lottie",
     "animationKey": "Valentine",
     "animationData": "valentines",
-    "link": "https://github.com/shivba28/v-game-app",
-    "demo": "https://shivba28.github.io/v-game-app/",
+    "link": "https://github.com/Shewbakaa/v-game-app",
+    "demo": "https://shewbakaa.github.io/v-game-app/",
     "Desc": "A lighthearted, interactive game celebrating Valentine's Day, designed to engage users with festive mini-games and challenges centered around themes of love and friendship."
   },
   {
@@ -49,43 +52,36 @@
     "title": "Chat-Bot",
     "note": "it talks back",
     "createdDate": "2024-02-04",
+    "stack": "experiments",
     "type": "lottie",
     "animationKey": "Chatbot",
     "animationData": "chatbot",
-    "link": "https://github.com/shivba28/chat-bot",
+    "link": "https://github.com/Shewbakaa/chat-bot",
     "Desc": "An AI-driven chatbot that facilitates seamless user interactions, providing assistance and answers to frequently asked questions across various domains, with a focus on natural language processing."
-  },
-  {
-    "id": 6,
-    "title": "Portfolio",
-    "note": "you are here",
-    "createdDate": "2024-09-04",
-    "type": "lottie",
-    "animationKey": "Portfolio",
-    "animationData": "portfolio",
-    "link": "https://github.com/shivba28/portfolio_2.0",
-    "Desc": "A personal portfolio showcasing development skills, projects, and accomplishments in a visually appealing format, serving as an online resume and professional introduction."
   },
   {
     "id": 7,
     "title": "Mini Projects",
     "note": "tiny experiments",
     "createdDate": "2020-10-02",
+    "stack": "experiments",
     "type": "lottie",
     "animationKey": "Mini-projects",
     "animationData": "miniProjects",
-    "link": "https://github.com/shivba28/Mini-Projects",
-    "Desc": "A collection of innovative small-scale projects designed to explore new technologies, experiment with creative ideas, and develop unique, functional solutions to common challenges."
+    "link": "https://github.com/Shewbakaa/Small-Projects",
+    "Desc": "A grab bag of small builds collected over the years: 3D and animated cards, SVG construction drawings, Python scripts and one-off experiments with new ideas.",
+    "demo": "https://shewbakaa.github.io/Small-Projects/"
   },
   {
     "id": 8,
     "title": "Video Game Rental",
     "note": "press start to rent",
     "createdDate": "2021-04-20",
+    "stack": "early",
     "type": "lottie",
     "animationKey": "video-game",
     "animationData": "videoGame",
-    "link": "https://github.com/shivba28/Game_Rentel",
+    "link": "https://github.com/Shewbakaa/Game_Rentel",
     "Desc": "A platform for renting video games that allows users to browse, select, and rent games easily, while managing inventory and tracking rental history effectively."
   },
   {
@@ -93,12 +89,13 @@
     "title": "Prop-Chain",
     "note": "houses on the blockchain",
     "createdDate": "2023-05-17",
+    "stack": "early",
     "type": "lottie-prop",
     "animationKey": "PropChain-1",
     "animationKey2": "PropChain-2",
     "animationData": "propChain1",
     "animationData2": "propChain2",
-    "link": "https://github.com/shivba28/PropChain",
+    "link": "https://github.com/Shewbakaa/PropChain",
     "Desc": "A blockchain-inspired project aimed at enhancing property management by securely recording transactions, managing ownership records, and ensuring transparent real estate processes."
   },
   {
@@ -106,11 +103,12 @@
     "title": "Jerryssa",
     "note": "they said yes!",
     "createdDate": "2026-02-19",
+    "stack": "friends",
     "type": "lottie-prop",
     "animationKey": "Card-Heart",
     "animationData": "cardHeart",
-    "link": "https://github.com/shivba28/Jeryssa",
-    "demo": "https://shivba28.github.io/Jeryssa/",
+    "link": "https://github.com/Shewbakaa/Jeryssa",
+    "demo": "https://shewbakaa.github.io/Jeryssa/",
     "Desc": "A website to celebrate my friends getting engaged."
   },
   {
@@ -118,11 +116,12 @@
     "title": "RSVP",
     "note": "party time",
     "createdDate": "2025-08-05",
+    "stack": "friends",
     "type": "lottie-prop",
     "animationKey": "rsvp",
     "animationData": "rsvp",
-    "link": "https://github.com/shivba28/rsvp-website",
-    "demo": "https://shivba28.github.io/rsvp-website/",
+    "link": "https://github.com/Shewbakaa/rsvp-website",
+    "demo": "https://shewbakaa.github.io/rsvp-website/",
     "Desc": "RSVP website for inviting guests to his retirement party."
   },
   {
@@ -130,11 +129,12 @@
     "title": "Secret Santa",
     "note": "shh... it's a secret",
     "createdDate": "2025-11-17",
+    "stack": "friends",
     "type": "lottie-prop",
     "animationKey": "secretSanta",
     "animationData": "secretSanta",
-    "link": "https://github.com/shivba28/secret-santa-form",
-    "demo": "https://shivba28.github.io/secret-santa-form/",
+    "link": "https://github.com/Shewbakaa/secret-santa-form",
+    "demo": "https://shewbakaa.github.io/secret-santa-form/",
     "Desc": "A fun and interactive website for organizing secret santa exchanges."
   },
   {
@@ -142,11 +142,12 @@
     "title": "Voting System",
     "note": "salsa vs costumes",
     "createdDate": "2025-12-12",
+    "stack": "friends",
     "type": "lottie-prop",
     "animationKey": "Voting",
     "animationData": "voting",
-    "link": "https://github.com/shivba28/Voting-System",
-    "demo": "https://shivba28.github.io/Voting-System/",
+    "link": "https://github.com/Shewbakaa/Voting-System",
+    "demo": "https://shewbakaa.github.io/Voting-System/",
     "Desc": "An online voting system for company competitions: Salsa Competition and Jolly Costume Contest."
   },
   {
@@ -154,10 +155,11 @@
     "title": "Umbraco Base",
     "note": "a solid starting point",
     "createdDate": "2026-02-25",
+    "stack": "experiments",
     "type": "lottie-prop",
     "animationKey": "umbracoBase",
     "animationData": "umbracoBase",
-    "link": "https://github.com/shivba28/Umbraco-Base",
+    "link": "https://github.com/GardenGroveUnified/Umbraco-Base",
     "Desc": "A base template for building websites with Umbraco, providing a solid foundation for custom development and rapid prototyping."
   },
   {
@@ -168,7 +170,6 @@
     "type": "lottie-prop",
     "animationKey": "foodservices",
     "animationData": "foodservices",
-    "link": "https://github.com/shivba28/Food-Services",
     "demo": "https://foodservices.ggusd.us",
     "Desc": "GGUSD Food Services Department Website to manage and promote food service offerings."
   },
@@ -180,8 +181,71 @@
     "type": "lottie-prop",
     "animationKey": "mealRoulette",
     "animationData": "mealRoulette",
-    "link": "https://github.com/shivba28/MealRoulette",
+    "link": "https://github.com/Shewbakaa/MealRoulette",
     "demo": "https://meal--roulette.vercel.app/",
     "Desc": "Production-grade full stack TypeScript monorepo for a high-performance nutrition recommendation platform. Domain-driven design and clean architecture."
+  },
+  {
+    "id": 17,
+    "title": "Book Roulette",
+    "note": "spin for your next read",
+    "createdDate": "2026-10-28",
+    "type": "image",
+    "image": "bookRoulette",
+    "link": "https://github.com/Shewbakaa/BookRoulette",
+    "demo": "https://shewbakaa.github.io/BookRoulette/",
+    "Desc": "A phone-first PWA that spins a 3D carousel of your bookshelf to pick your next read. Scan a book's barcode to add it, filter by genre, and let the roulette decide."
+  },
+  {
+    "id": 18,
+    "title": "Workout Buddy",
+    "note": "book a class, get strong",
+    "createdDate": "2026-10-17",
+    "type": "image",
+    "image": "workoutBuddy",
+    "demo": "https://yourworkoutbuddy.vercel.app",
+    "Desc": "Website for a personal trainer in Huntington Beach with live class booking and payments. Built with Next.js, Supabase and Square."
+  },
+  {
+    "id": 19,
+    "title": "LocalFixr",
+    "note": "your neighborhood handyman",
+    "createdDate": "2026-05-03",
+    "type": "image",
+    "image": "localfixr",
+    "Desc": "A neighborhood job marketplace. Homeowners post jobs and local workers bid. The card is held when a worker is picked and charged only when the worker enters the 6-digit code the homeowner hands over once the job is done.",
+    "privateNote": "Private repo · demo on request"
+  },
+  {
+    "id": 20,
+    "title": "Postcard Memories",
+    "note": "a film of our postcards",
+    "createdDate": "2026-10-19",
+    "stack": "friends",
+    "type": "image",
+    "image": "postcardMemories",
+    "demo": "https://postcard-memories.vercel.app",
+    "Desc": "A postcard collection told as a short film. The camera travels card to card along a crimson thread, which is then written across a map of the United States before the end credits roll."
+  },
+  {
+    "id": 21,
+    "title": "Picture Train",
+    "note": "all aboard!",
+    "createdDate": "2026-10-19",
+    "type": "image",
+    "image": "pictureTrain",
+    "demo": "https://picture-train.vercel.app",
+    "Desc": "A gift website sent as a link. A bluebird delivers a letter holding a ticket, then a cosy cartoon train rides through autumn, winter, spring, summer and an evening town."
+  },
+  {
+    "id": 22,
+    "title": "Traffic Simul8r",
+    "note": "green means go",
+    "createdDate": "2026-05-15",
+    "stack": "experiments",
+    "type": "image",
+    "image": "trafficSimul8r",
+    "demo": "https://multi-intersection-traffic-simul8r.vercel.app/",
+    "Desc": "A multi-intersection traffic simulator on Canvas. Signals run on a state machine with sensor-aware adaptive timing, protected left turns and pedestrian walk cycles, while cars queue, turn and spread across the grid. Crank density to High and watch the queue times spiral."
   }
 ]
