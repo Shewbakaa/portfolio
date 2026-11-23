@@ -40,9 +40,21 @@
 
 .vinyl-shelf__slot {
   position: relative;
+  display: block;
   width: 72px;
   flex-shrink: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
   cursor: pointer;
+}
+
+.vinyl-shelf__slot:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 3px;
 }
 
 .vinyl-shelf__tooltip {
@@ -87,9 +99,56 @@
   justify-content: flex-start;
 }
 
-.vinyl-shelf__slot:hover .vinyl-shelf__sleeve {
+.vinyl-shelf__slot:hover .vinyl-shelf__sleeve,
+.vinyl-shelf__slot.is-current .vinyl-shelf__sleeve {
   transform: translateY(-28px);
   box-shadow: 3px 3px 0 var(--ink);
+}
+
+/* The playing record's disc slides up out of its sleeve and spins */
+.vinyl-shelf__slot.is-current .vinyl-shelf__sleeve {
+  overflow: visible;
+}
+
+.vinyl-shelf__slot.is-current .vinyl-shelf__disc {
+  top: -22px;
+}
+
+.vinyl-shelf__slot.is-playing .vinyl-shelf__disc {
+  animation: vinyl-spin 1.8s linear infinite;
+}
+
+@keyframes vinyl-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.vinyl-shelf__note {
+  position: absolute;
+  top: -40px;
+  right: -2px;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.vinyl-shelf__slot.is-playing .vinyl-shelf__note {
+  opacity: 1;
+  animation: vinyl-note 1.4s ease-in-out infinite;
+}
+
+@keyframes vinyl-note {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-8deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(8deg);
+  }
 }
 
 .vinyl-shelf__disc {
@@ -111,6 +170,21 @@
   );
   border: 1.5px solid var(--ink);
   box-sizing: border-box;
+  transition: top 0.35s cubic-bezier(0.3, 0.7, 0.3, 1);
+  z-index: -1;
+}
+
+/* Off-centre gleam so the spin reads */
+.vinyl-shelf__disc::before {
+  content: '';
+  position: absolute;
+  top: 6px;
+  left: 10px;
+  width: 12px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.35);
+  transform: rotate(-35deg);
 }
 
 .vinyl-shelf__disc::after {
@@ -205,4 +279,126 @@
   border: 1.5px solid var(--ink);
   border-top: none;
   box-sizing: border-box;
+}
+
+.vinyl-shelf__sleeve,
+.vinyl-shelf__stripe,
+.vinyl-shelf__stripe-title,
+.vinyl-shelf__stripe-artist {
+  display: block;
+}
+
+.vinyl-shelf__sleeve {
+  isolation: isolate;
+}
+
+/* ---------- Now spinning: an 80 x 80 cover tile pinned top-left ---------- */
+
+.now-spinning {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 160;
+  width: 80px;
+  height: 80px;
+  border: var(--border);
+  border-radius: 10px;
+  background: #282828;
+  box-shadow: 4px 4px 0 var(--ink);
+  transform: rotate(-2deg);
+  animation: now-spinning-in 0.35s cubic-bezier(0.3, 0.7, 0.3, 1);
+}
+
+@keyframes now-spinning-in {
+  from {
+    opacity: 0;
+    transform: translateY(-16px) rotate(-2deg);
+  }
+}
+
+/* Spotify's embed (cover art only at this size) fills the tile and must stay visible */
+.now-spinning__screen {
+  position: absolute;
+  inset: 0;
+  border-radius: 7px;
+  overflow: hidden;
+}
+
+.now-spinning__screen > div,
+.now-spinning__screen > div > div,
+.now-spinning__screen iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+/* Little "on air" light and close button sit on the tile's corners */
+.now-spinning__dot {
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  z-index: 1;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--ink);
+  background: #bbb;
+}
+
+.now-spinning__dot.is-on {
+  background: var(--red);
+  animation: now-spinning-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes now-spinning-pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.now-spinning__close {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  z-index: 1;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  background: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 1px 1px 0 var(--ink);
+}
+
+.now-spinning__close:hover {
+  background: var(--yellow);
+}
+
+.now-spinning__close:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 2px;
+}
+
+/* Phones: tuck it under the menu button */
+@media (max-width: 600px) {
+  .now-spinning {
+    top: calc(72px + env(safe-area-inset-top, 0px));
+    left: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vinyl-shelf__slot.is-playing .vinyl-shelf__disc,
+  .vinyl-shelf__slot.is-playing .vinyl-shelf__note,
+  .now-spinning,
+  .now-spinning__dot.is-on {
+    animation: none;
+  }
 }
