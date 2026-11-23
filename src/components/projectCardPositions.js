@@ -25,15 +25,12 @@ export const PROJECT_CARD_POSITIONS = {
 };
 
 /**
- * Piles east of the featured cards. Each pile fans out to the right in a single
- * row, so piles stacked vertically never collide when opened.
- * `left`/`top` is the top card's spot; the label sits underneath.
+ * Piles east of the featured cards, cycled in place with ‹ › or a swipe.
+ * `left`/`top` is the top card's spot; the folder tab sits above it and the
+ * ‹ n / total › controls below, so leave ~560px between pile tops.
  */
 export const PROJECT_STACKS = {
-  friends: { label: 'made for friends', left: 2240, top: -640, rotate: -1.6 },
-  experiments: { label: 'experiments', left: 2240, top: -140, rotate: 1.4 },
-  early: { label: 'the early days', left: 2240, top: 360, rotate: -1.2 },
+  friends: { label: 'made for friends', left: 2240, top: -700, rotate: -1.6 },
+  experiments: { label: 'experiments', left: 2240, top: -150, rotate: 1.4 },
+  early: { label: 'the early days', left: 2240, top: 400, rotate: -1.2 },
 };
-
-// Gap between fanned-out cards (card is 280px wide)
-export const STACK_FAN_STEP = 310;

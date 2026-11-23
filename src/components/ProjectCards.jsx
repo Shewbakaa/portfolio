@@ -11,7 +11,7 @@ import projectsData from '../assets/json/projects.json';
 
 import pacmanWebm from '../assets/Videos/pacman.webm';
 import pacmanHevc from '../assets/Videos/pacman-hevc.mov';
-import { PROJECT_CARD_POSITIONS, PROJECT_STACKS, STACK_FAN_STEP } from './projectCardPositions';
+import { PROJECT_CARD_POSITIONS, PROJECT_STACKS } from './projectCardPositions';
 
 import bookRouletteImg from '../assets/Images/projects/bookRoulette.webp';
 import workoutBuddyImg from '../assets/Images/projects/workoutBuddy.webp';
@@ -130,15 +130,8 @@ const useCardSketch = (id) =>
     };
   }, [id]);
 
-// Where a stacked card sits: piled (top card first, the next two peeking out) or fanned in a row
-const getStackPos = (pile, depth, fanned) => {
-  if (fanned) {
-    return {
-      left: pile.left + depth * STACK_FAN_STEP,
-      top: pile.top + (depth % 2 ? 18 : -6),
-      rotate: depth % 2 ? 1.3 : -1.1,
-    };
-  }
+// Where a stacked card sits: the top card, with the next two peeking out behind it
+const getStackPos = (pile, depth) => {
   const layer = Math.min(depth, 2);
   return {
     left: pile.left + layer * 10,
@@ -147,10 +140,16 @@ const getStackPos = (pile, depth, fanned) => {
   };
 };
 
+const prefersReducedMotion = () =>
+  typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
+// How far the top card of a pile must be swiped sideways to send it to the back
+const SWIPE_THRESHOLD = 70;
+
 /**
- * `pile` is null for featured cards. For stacked cards it is
- * { label, depth, size, fanned, onOpen } and the card turns into a pile page
- * (no drag, no flip, click opens the pile) until the pile is fanned out.
+ * `pile` is null for featured cards. For stacked cards it is { depth, size, onSwipe }.
+ * Only the top page (depth 0) is interactive: click flips it, a sideways swipe
+ * cycles the pile (onSwipe(+1 | -1)), and any other drag springs back.
  */
 const ProjectCard = memo(function ProjectCard({ p, pos, pile, flipped, onToggleFlip }) {
   const cardRef = useRef(null);
@@ -158,7 +157,8 @@ const ProjectCard = memo(function ProjectCard({ p, pos, pile, flipped, onToggleF
   const toggleRef = useRef(onToggleFlip);
   toggleRef.current = onToggleFlip;
   const { left, top, rotate } = pos;
-  const piled = Boolean(pile && !pile.fanned);
+  const isPileTop = Boolean(pile && pile.depth === 0);
+  const buried = Boolean(pile && pile.depth > 0);
   const pileRef = useRef(pile);
   pileRef.current = pile;
   const { inView, isNear } = useIsInView(cardRef);
@@ -198,6 +198,16 @@ const ProjectCard = memo(function ProjectCard({ p, pos, pile, flipped, onToggleF
         if (e?.target?.closest?.('a, button')) return;
         toggleRef.current(p.id);
       },
+      onDragEnd() {
+        const pileNow = pileRef.current;
+        if (!pileNow) return;
+        // Pile pages never wander off: a long sideways swipe cycles, anything else springs back
+        if (Math.abs(this.x) > SWIPE_THRESHOLD && Math.abs(this.x) > Math.abs(this.y)) {
+          pileNow.onSwipe(this.x > 0 ? 1 : -1);
+        } else {
+          gsap.to(this.target, { x: 0, y: 0, duration: 0.35, ease: 'back.out(1.6)' });
+        }
+      },
     })[0];
 
     draggableRef.current = d;
@@ -207,17 +217,13 @@ const ProjectCard = memo(function ProjectCard({ p, pos, pile, flipped, onToggleF
     };
   }, [p.id]);
 
-  // Piled pages can't be dragged; folding a pile pulls dragged pages back onto it
+  // Only the top page of a pile can be grabbed
   useEffect(() => {
     const d = draggableRef.current;
     if (!d) return;
-    if (piled) {
-      d.disable();
-      gsap.to(cardRef.current, { x: 0, y: 0, duration: 0.45, ease: 'power3.out' });
-    } else {
-      d.enable();
-    }
-  }, [piled]);
+    if (buried) d.disable();
+    else d.enable();
+  }, [buried]);
   useEffect(() => {
     if (isNear) setActivated(true);
   }, [isNear]);
@@ -245,7 +251,7 @@ const ProjectCard = memo(function ProjectCard({ p, pos, pile, flipped, onToggleF
   // Play only while on screen; pause keeps the current frame so it resumes in place
   // Play only while the front is on screen; pause keeps the frame so it resumes in place
   useEffect(() => {
-    const shouldPlay = inView && !flipped;
+    const shouldPlay = inView && !flipped && !buried;
     [lottieRef.current, lottieRef2.current].forEach((anim) => {
       if (!anim) return;
       if (shouldPlay) anim.play();
@@ -257,7 +263,7 @@ const ProjectCard = memo(function ProjectCard({ p, pos, pile, flipped, onToggleF
       if (shouldPlay) video.play().catch(() => {});
       else video.pause();
     }
-  }, [inView, flipped, anims, activated]);
+  }, [inView, flipped, buried, anims, activated]);
 
   const hero =
     p.type === 'image' && activated && PROJECT_IMAGES[p.image] ? (
@@ -311,8 +317,8 @@ const ProjectCard = memo(function ProjectCard({ p, pos, pile, flipped, onToggleF
     'project-card',
     flipped && 'project-card--flipped',
     pile && 'project-card--stacked',
-    piled && 'project-card--piled',
-    piled && pile.depth === 0 && 'project-card--pileTop',
+    isPileTop && 'project-card--pileTop',
+    buried && 'project-card--buried',
   ]
     .filter(Boolean)
     .join(' ');
@@ -326,19 +332,13 @@ const ProjectCard = memo(function ProjectCard({ p, pos, pile, flipped, onToggleF
         left,
         top,
         ['--pc-rot']: `${rotate}deg`,
-        ...(pile && { zIndex: pile.fanned ? 1 : pile.size - pile.depth }),
+        ...(pile && { zIndex: pile.size - pile.depth }),
       }}
-      aria-hidden={piled && pile.depth > 0 ? true : undefined}
+      data-pid={p.id}
+      aria-hidden={buried ? true : undefined}
       onMouseDown={(e) => e.stopPropagation()}
       onPointerDown={(e) => e.stopPropagation()}
       onTouchStart={(e) => e.stopPropagation()}
-      onClickCapture={(e) => {
-        // A piled page opens its pile instead of flipping or following links
-        if (!pileRef.current || pileRef.current.fanned) return;
-        e.preventDefault();
-        e.stopPropagation();
-        pileRef.current.onOpen();
-      }}
     >
       {/* Intro pop target: no CSS transform here, so GSAP's leftover inline transform is harmless */}
       <div className="project-card__pop">
@@ -407,8 +407,8 @@ const ProjectCard = memo(function ProjectCard({ p, pos, pile, flipped, onToggleF
         </div>
       </div>
 
-      {/* Keyboard access to the flip (mouse users click the page itself); piles use their label */}
-      {piled ? null : (
+      {/* Keyboard access to the flip (mouse users click the page itself) */}
+      {buried ? null : (
         <button type="button" className="sr-only" onClick={() => onToggleFlip(p.id)} aria-pressed={flipped}>
           {flipped ? `Show ${p.title} sketch` : `Show ${p.title} details`}
         </button>
@@ -417,37 +417,63 @@ const ProjectCard = memo(function ProjectCard({ p, pos, pile, flipped, onToggleF
   );
 });
 
-// Paper label under a pile: names it, counts it, and spreads/folds it
-const StackTag = ({ id, stack, count, open, onToggle }) => {
-  const wobble = useMemo(() => makeWobble(seededRandom(id.length * 977 + count)), [id, count]);
-  const box = useMemo(() => sketchBox(3, 3, 254, 50, 4, wobble), [wobble]);
+// Folder tab naming a pile, stuck to its back page
+const PileTab = ({ stack, count }) => (
+  <div
+    className="project-pile-tab"
+    style={{ left: stack.left - 4, top: stack.top - 60, zIndex: count + 1, ['--tab-rot']: `${stack.rotate * 0.5}deg` }}
+    aria-hidden="true"
+  >
+    {stack.label} <span className="project-pile-tab__count">· {count}</span>
+  </div>
+);
+
+// ‹ 2 / 6 › under a pile
+const PileNav = ({ stack, top, count, onCycle }) => {
+  const onKeyDown = (e) => {
+    if (e.key === 'ArrowRight') onCycle(1);
+    else if (e.key === 'ArrowLeft') onCycle(-1);
+    else return;
+    e.preventDefault();
+  };
   return (
-    <button
-      type="button"
-      className={`project-stack-tag${open ? ' is-open' : ''}`}
-      style={{ left: stack.left + 10, top: stack.top + 404, ['--tag-rot']: `${-stack.rotate * 0.6}deg` }}
-      onClick={onToggle}
+    <div
+      className="project-pile-nav"
+      style={{ left: stack.left, top: stack.top + 398 }}
+      role="group"
+      aria-label={`${stack.label} pile`}
+      onKeyDown={onKeyDown}
       onPointerDown={(e) => e.stopPropagation()}
       onMouseDown={(e) => e.stopPropagation()}
-      aria-expanded={open}
-      aria-label={`${open ? 'Fold' : 'Spread out'} ${stack.label}: ${count} projects`}
     >
-      <svg className="project-stack-tag__frame" viewBox="0 0 260 56" preserveAspectRatio="none" aria-hidden="true">
-        <path d={box} />
-      </svg>
-      <span className="project-stack-tag__label">
-        {stack.label} <span className="project-stack-tag__count">· {count}</span>
+      <button
+        type="button"
+        className="project-pile-nav__btn"
+        onClick={() => onCycle(-1)}
+        aria-label={`Previous project in ${stack.label}`}
+      >
+        ‹
+      </button>
+      <span className="project-pile-nav__count" aria-live="polite">
+        {top + 1} / {count}
       </span>
-      <span className="project-stack-tag__action" aria-hidden="true">
-        {open ? 'fold ↩' : 'spread →'}
-      </span>
-    </button>
+      <button
+        type="button"
+        className="project-pile-nav__btn"
+        onClick={() => onCycle(1)}
+        aria-label={`Next project in ${stack.label}`}
+      >
+        ›
+      </button>
+    </div>
   );
 };
 
 export const ProjectCards = () => {
   const [flippedId, setFlippedId] = useState(null);
-  const [openStack, setOpenStack] = useState(null);
+  // Index (into the pile's members) of the card currently on top of each pile
+  const [pileTops, setPileTops] = useState({});
+  const busyRef = useRef({});
   const rootRef = useRef(null);
 
   const projects = useMemo(() => {
@@ -455,7 +481,7 @@ export const ProjectCards = () => {
     return [...resolved].sort((a, b) => parseDate(b.createdDate) - parseDate(a.createdDate));
   }, []);
 
-  // Newest project sits on top of each pile
+  // Newest project starts on top of each pile
   const stackMembers = useMemo(() => {
     const groups = {};
     projects.forEach((p) => {
@@ -464,18 +490,77 @@ export const ProjectCards = () => {
     return groups;
   }, [projects]);
 
-  const toggleStack = useCallback(
-    (key) => {
-      setOpenStack((prev) => (prev === key ? null : key));
-      // Don't leave a page flipped inside a pile that's folding
-      setFlippedId((prev) => (prev && projects.find((p) => p.id === prev)?.stack ? null : prev));
+  const pileTopsRef = useRef(pileTops);
+  pileTopsRef.current = pileTops;
+
+  /**
+   * dir +1: the top page slides out (toward `tossDir`) and tucks under the pile.
+   * dir -1: the bottom page slides in from the left and lands on top.
+   */
+  const cyclePile = useCallback(
+    (key, dir, tossDir = dir) => {
+      const members = stackMembers[key];
+      if (!members || members.length < 2 || busyRef.current[key]) return;
+      const n = members.length;
+      const top = pileTopsRef.current[key] || 0;
+      const nextTop = (top + dir + n) % n;
+      const elFor = (id) => rootRef.current?.querySelector(`[data-pid="${id}"]`);
+      const commit = () => setPileTops((prev) => ({ ...prev, [key]: nextTop }));
+
+      // Never bury a flipped page
+      setFlippedId((prev) => (members.includes(prev) ? null : prev));
+
+      const leaving = elFor(members[top]);
+      const arriving = elFor(members[nextTop]);
+      if (prefersReducedMotion()) {
+        gsap.set([leaving, arriving].filter(Boolean), { x: 0, y: 0 });
+        commit();
+        return;
+      }
+
+      busyRef.current[key] = true;
+      const done = () => {
+        busyRef.current[key] = false;
+      };
+      if (dir > 0 && leaving) {
+        gsap.to(leaving, {
+          x: 320 * tossDir,
+          y: -10,
+          duration: 0.22,
+          ease: 'power2.in',
+          onComplete: () => {
+            commit();
+            gsap.to(leaving, { x: 0, y: 0, duration: 0.4, ease: 'power3.out', onComplete: done });
+          },
+        });
+      } else if (arriving) {
+        commit();
+        gsap.fromTo(
+          arriving,
+          { x: -320, y: -10 },
+          { x: 0, y: 0, duration: 0.4, ease: 'power3.out', onComplete: done }
+        );
+      } else {
+        commit();
+        done();
+      }
     },
-    [projects]
+    [stackMembers]
   );
 
-  const openers = useMemo(
-    () => Object.fromEntries(Object.keys(PROJECT_STACKS).map((k) => [k, () => toggleStack(k)])),
-    [toggleStack]
+  const cyclers = useMemo(
+    () =>
+      Object.fromEntries(
+        Object.keys(PROJECT_STACKS).map((k) => [
+          k,
+          {
+            nav: (dir) => cyclePile(k, dir),
+            // A swipe either way tosses the top page to the back of the pile
+            swipe: (dir) => cyclePile(k, 1, dir),
+          },
+        ])
+      ),
+    [cyclePile]
   );
 
   // One page flipped at a time; clicking a flipped page turns it back
@@ -512,29 +597,30 @@ export const ProjectCards = () => {
           );
         }
         const members = stackMembers[p.stack];
-        const depth = members.indexOf(p.id);
-        const fanned = openStack === p.stack;
+        const n = members.length;
+        const depth = (members.indexOf(p.id) - (pileTops[p.stack] || 0) + n) % n;
         return (
           <ProjectCard
             key={p.id}
             p={p}
-            pos={getStackPos(stack, depth, fanned)}
-            pile={{ depth, size: members.length, fanned, onOpen: openers[p.stack] }}
-            flipped={fanned && flippedId === p.id}
+            pos={getStackPos(stack, depth)}
+            pile={{ depth, size: n, onSwipe: cyclers[p.stack].swipe }}
+            flipped={depth === 0 && flippedId === p.id}
             onToggleFlip={toggleFlip}
           />
         );
       })}
       {Object.entries(PROJECT_STACKS).map(([key, stack]) =>
         stackMembers[key] ? (
-          <StackTag
-            key={key}
-            id={key}
-            stack={stack}
-            count={stackMembers[key].length}
-            open={openStack === key}
-            onToggle={openers[key]}
-          />
+          <React.Fragment key={key}>
+            <PileTab stack={stack} count={stackMembers[key].length} />
+            <PileNav
+              stack={stack}
+              top={pileTops[key] || 0}
+              count={stackMembers[key].length}
+              onCycle={cyclers[key].nav}
+            />
+          </React.Fragment>
         ) : null
       )}
     </div>

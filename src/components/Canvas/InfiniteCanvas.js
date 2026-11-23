@@ -292,7 +292,7 @@ export const InfiniteCanvas = ({ children }) => {
     gsap.set(['#zoom-info', '#minimap'], { opacity: 0, x: 42 });
     gsap.set(['.about-card', '.float-badges-root', '.float-badge'], { opacity: 0 });
     gsap.set('.float-badge-inner', { scale: 0.86 });
-    gsap.set(['.project-card', '.project-stack-tag'], { opacity: 0 });
+    gsap.set(['.project-card', '.project-pile-tab', '.project-pile-nav'], { opacity: 0 });
     gsap.set('.project-card__pop', { scale: 0.86 });
     gsap.set(['.skill-cards-cluster', '.timeline-strip', '.contact-cluster'], { opacity: 0 });
     gsap.set(['.sticky-note'], { opacity: 0 });
@@ -349,7 +349,7 @@ export const InfiniteCanvas = ({ children }) => {
       );
 
       tl.fromTo(
-        '.project-card, .project-stack-tag',
+        '.project-card, .project-pile-tab, .project-pile-nav',
         { opacity: 0 },
         {
           opacity: 1,
